@@ -277,6 +277,34 @@ select option{background:#1a2236;color:#fff;}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a2236;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ── Series Strip ── */
+.series-strip{background:linear-gradient(90deg,rgba(168,85,247,.08),rgba(168,85,247,.02));border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;}
+.series-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.series-game{font-size:13px;font-weight:700;color:var(--purple);}
+.series-rubber{font-size:11px;font-weight:700;background:rgba(240,165,0,.15);color:var(--gold);border:1px solid rgba(240,165,0,.3);border-radius:6px;padding:2px 8px;}
+.series-rec{font-size:11px;color:var(--text2);background:var(--surface2);border-radius:6px;padding:2px 8px;}
+.series-yest{font-size:11px;color:var(--text3);}
+/* ── Umpire Badge ── */
+.ump-strip{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;}
+.ump-name{font-weight:700;}
+.ump-factor{font-weight:700;padding:2px 8px;border-radius:6px;font-size:11px;}
+.ump-pos{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.ump-neg{background:rgba(59,130,246,.12);color:var(--blue);border:1px solid rgba(59,130,246,.25);}
+.ump-neu{background:var(--surface3);color:var(--text2);border:1px solid var(--border);}
+/* ── Bullpen ── */
+.bp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.bp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.bp-team{background:var(--surface2);border-radius:10px;padding:12px;}
+.bp-team-hd{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;}
+.bp-status{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:auto;}
+.bp-fresh{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+.bp-mixed{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.25);}
+.bp-depleted{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.bp-arm{padding:5px 0;border-bottom:1px solid rgba(42,58,85,.3);}
+.bp-arm:last-child{border-bottom:none;}
+.bp-name{font-size:12px;font-weight:700;display:block;}
+.bp-rest{font-size:10px;display:block;margin-top:1px;}
+@media(max-width:600px){.bp-grid{grid-template-columns:1fr;}}
 /* ── Advanced Bets (NRFI / F5) ── */
 .adv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
 .adv-tabs{display:flex;gap:6px;margin-bottom:12px;}
@@ -420,11 +448,14 @@ select option{background:#1a2236;color:#fff;}
   <div class="game-grid" id="gameGrid"></div>
   <div class="detail" id="detail">
     <div id="heroEl"></div>
+    <div id="seriesEl"></div>
+    <div id="umpEl"></div>
     <div id="contextEl"></div>
     <div id="probEl"></div>
     <div id="advancedEl"></div>
     <div id="ouEl"></div>
     <div class="pitch-grid" id="pitchEl"></div>
+    <div id="bullpenEl"></div>
     <div id="propsEl"></div>
     <div id="matchupEl"></div>
     <div id="oddsEl"></div>
@@ -461,6 +492,46 @@ const LOGO=id=>`https://www.mlbstatic.com/team-logos/${id}.svg`;
 
 const PARK_FACTORS={108:{name:'Angel Stadium',hr:96,run:97,note:'Pitcher-friendly'},117:{name:'Minute Maid Park',hr:103,run:101,note:'Hitter-friendly',indoor:true},140:{name:'Globe Life Field',hr:105,run:103,note:'Hitter-friendly',indoor:true},141:{name:'Rogers Centre',hr:108,run:104,note:'Hitter-friendly',indoor:true},3:{name:'Oriole Park',hr:107,run:103,note:'Hitter-friendly'},4:{name:'Fenway Park',hr:103,run:103,note:'Hitter-friendly'},5:{name:'Guaranteed Rate Field',hr:106,run:102,note:'Hitter-friendly'},10:{name:'Progressive Field',hr:99,run:99,note:'Neutral'},11:{name:'Comerica Park',hr:93,run:96,note:'Pitcher-friendly'},7:{name:'Kauffman Stadium',hr:97,run:98,note:'Neutral'},2:{name:'Target Field',hr:97,run:98,note:'Neutral'},15:{name:'Yankee Stadium',hr:112,run:106,note:'Very hitter-friendly'},680:{name:'T-Mobile Park',hr:91,run:95,note:'Pitcher-friendly'},12:{name:'Tropicana Field',hr:96,run:98,note:'Indoor',indoor:true},14:{name:'Wrigley Field',hr:105,run:102,note:'Wind-dependent'},17:{name:'Great American Ball Park',hr:112,run:106,note:'Very hitter-friendly'},16:{name:'Coors Field',hr:124,run:115,note:'Extreme hitter-friendly'},19:{name:'Dodger Stadium',hr:97,run:99,note:'Neutral'},22:{name:'American Family Field',hr:107,run:103,note:'Hitter-friendly',indoor:true},28:{name:'Citi Field',hr:96,run:98,note:'Neutral'},24:{name:'Citizens Bank Park',hr:110,run:106,note:'Very hitter-friendly'},25:{name:'PNC Park',hr:97,run:98,note:'Neutral'},29:{name:'Busch Stadium',hr:97,run:99,note:'Neutral'},32:{name:'Petco Park',hr:94,run:96,note:'Pitcher-friendly'},26:{name:'Oracle Park',hr:87,run:93,note:'Very pitcher-friendly'},27:{name:'Truist Park',hr:103,run:101,note:'Slightly hitter-friendly'},1:{name:'Marlins Park',hr:94,run:97,note:'Pitcher-friendly',indoor:true},4705:{name:'loanDepot park',hr:94,run:97,note:'Pitcher-friendly',indoor:true},2680:{name:'Nationals Park',hr:103,run:101,note:'Neutral'},13:{name:'Oakland Coliseum',hr:94,run:96,note:'Pitcher-friendly'}};
 
+// ── Umpire Run Factor table (% vs avg, based on public UmpScorecards data) ──
+const UMPIRES={
+  'Angel Hernandez':{runFactor:+5,zone:'Inconsistent',note:'Notoriously inconsistent calls'},
+  'CB Bucknor':{runFactor:+8,zone:'Wide',note:'Wide zone, high-scoring games'},
+  'Doug Eddings':{runFactor:-8,zone:'Tight',note:'Pitcher-friendly, tight zone'},
+  'Jordan Baker':{runFactor:-6,zone:'Tight',note:'Low-scoring tendencies'},
+  'Dan Iassogna':{runFactor:+10,zone:'Wide',note:'Hitter-friendly, high HR rate'},
+  'Nic Lentz':{runFactor:-7,zone:'Tight',note:'Pitcher-friendly'},
+  'Marvin Hudson':{runFactor:+6,zone:'Wide',note:'Hitter-friendly zone'},
+  'Hunter Wendelstedt':{runFactor:+8,zone:'Wide',note:'Wide zone, hitter-friendly'},
+  'Pat Hoberg':{runFactor:0,zone:'Normal',note:'Robot-level consistency'},
+  'Mark Carlson':{runFactor:-5,zone:'Tight',note:'Pitcher-friendly'},
+  'Roberto Ortiz':{runFactor:-6,zone:'Tight',note:'Pitcher-friendly'},
+  'Lance Barksdale':{runFactor:+6,zone:'Wide',note:'Wide zone'},
+  'Phil Cuzzi':{runFactor:+5,zone:'Wide',note:'Slightly hitter-friendly'},
+  'Tom Hallion':{runFactor:-5,zone:'Tight',note:'Pitcher-friendly'},
+  'Tim Timmons':{runFactor:-6,zone:'Tight',note:'Pitcher-friendly'},
+  'John Tumpane':{runFactor:-4,zone:'Tight',note:'Slightly pitcher-friendly'},
+  'Chris Guccione':{runFactor:-3,zone:'Normal',note:'Slightly pitcher-friendly'},
+  'Mike DiMuro':{runFactor:+2,zone:'Normal',note:'Near average'},
+  'Jim Reynolds':{runFactor:-3,zone:'Normal',note:'Slightly pitcher-friendly'},
+  'Vic Carapazza':{runFactor:+4,zone:'Wide',note:'Slightly hitter-friendly'},
+  'Brian Gorman':{runFactor:+3,zone:'Normal',note:'Near average'},
+  'Gerry Davis':{runFactor:+2,zone:'Normal',note:'Veteran, consistent'},
+  'Bill Miller':{runFactor:+4,zone:'Normal',note:'Slightly hitter-friendly'},
+  'Alfonso Marquez':{runFactor:+2,zone:'Normal',note:'Near average'},
+  'Ted Barrett':{runFactor:0,zone:'Normal',note:'Very consistent'},
+  'James Hoye':{runFactor:-2,zone:'Normal',note:'Near average'},
+  'Mike Muchlinski':{runFactor:+3,zone:'Normal',note:'Near average'},
+  'Tripp Gibson':{runFactor:-2,zone:'Normal',note:'Near average'},
+  'Adam Hamari':{runFactor:+1,zone:'Normal',note:'Near average'},
+  'Jeremie Rehak':{runFactor:+2,zone:'Normal',note:'Near average'},
+  'Nestor Ceja':{runFactor:+1,zone:'Normal',note:'Near average'},
+  'Chris Conroy':{runFactor:0,zone:'Normal',note:'Consistent'},
+  'Mike Estabrook':{runFactor:+2,zone:'Normal',note:'Near average'},
+  'Ryan Blakney':{runFactor:+1,zone:'Normal',note:'Near average'},
+  'Junior Valentine':{runFactor:-3,zone:'Tight',note:'Slightly pitcher-friendly'},
+  'Nate Tomlinson':{runFactor:0,zone:'Normal',note:'Near average'},
+};
+
 const CITY_COORDS={'Yankee Stadium':{lat:40.83,lon:-73.93},'Fenway Park':{lat:42.35,lon:-71.10},'Wrigley Field':{lat:41.95,lon:-87.66},'Dodger Stadium':{lat:34.07,lon:-118.24},'Oracle Park':{lat:37.78,lon:-122.39},'Coors Field':{lat:39.76,lon:-104.99},'Minute Maid Park':{lat:29.76,lon:-95.36},'Globe Life Field':{lat:32.75,lon:-97.08},'Truist Park':{lat:33.89,lon:-84.47},'Great American Ball Park':{lat:39.10,lon:-84.51},'Citizens Bank Park':{lat:39.91,lon:-75.17},'PNC Park':{lat:40.45,lon:-80.01},'Busch Stadium':{lat:38.62,lon:-90.19},'American Family Field':{lat:43.03,lon:-87.97},'Petco Park':{lat:32.71,lon:-117.16},'T-Mobile Park':{lat:47.59,lon:-122.33},'Angel Stadium':{lat:33.80,lon:-117.88},'Kauffman Stadium':{lat:39.05,lon:-94.48},'Target Field':{lat:44.98,lon:-93.28},'Progressive Field':{lat:41.50,lon:-81.69},'Comerica Park':{lat:42.34,lon:-83.05},'Guaranteed Rate Field':{lat:41.83,lon:-87.63},'Tropicana Field':{lat:27.77,lon:-82.65},'loanDepot park':{lat:25.78,lon:-80.22},'Nationals Park':{lat:38.87,lon:-77.01},'Oriole Park':{lat:39.28,lon:-76.62},'Rogers Centre':{lat:43.64,lon:-79.39},'Oakland Coliseum':{lat:37.75,lon:-122.20},'Citi Field':{lat:40.76,lon:-73.85}};
 
 const S={
@@ -477,7 +548,9 @@ const S={
   notifiedGames:new Set(),
   predictions:JSON.parse(localStorage.getItem('mlb_preds')||'[]'),
   parlay:JSON.parse(localStorage.getItem('mlb_parlay')||'[]'),
-  parlayOpen:false
+  parlayOpen:false,
+  awayFormRaw:null,homeFormRaw:null,
+  plateUmpire:null
 };
 
 document.documentElement.setAttribute('data-theme',S.theme);
@@ -848,7 +921,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -872,6 +945,7 @@ async function selectGame(pk){
   S.homePS=hwPS?.stats?.[0]?.splits?.[0]?.stat||null;
   S.awayBP=awBP?.stats?.[0]?.splits?.[0]?.stat||null;
   S.homeBP=hwBP?.stats?.[0]?.splits?.[0]?.stat||null;
+  S.awayFormRaw=awForm;S.homeFormRaw=hwForm;
   S.awayForm=extractForm(awForm,awId);
   S.homeForm=extractForm(hwForm,hwId);
   S.awayTeamStats=awTS?.stats?.[0]?.splits?.[0]?.stat||null;
@@ -889,6 +963,8 @@ async function selectGame(pk){
   go(()=>renderMatchup(game));
   go(()=>renderOdds(game,espn));
   go(()=>renderEV(game));
+  // Stage 4 — async: series context, umpire, bullpen (separate fetches)
+  go(async()=>loadSeriesAndBullpen(game));
   $('shareFab').classList.add('visible');
   go(()=>trackPrediction(game,calcWP(game)));
   $('detail').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -944,6 +1020,174 @@ function showStatus(msg){$('statusEl').innerHTML=`<div class="status-bar"><div c
 function hideStatus(){$('statusEl').innerHTML='';}
 function toggleSidebar(){S.sidebarOpen=!S.sidebarOpen;$('sidebar').classList.toggle('open',S.sidebarOpen);$('menuBtn').classList.toggle('open',S.sidebarOpen);$('backdrop').classList.toggle('on',S.sidebarOpen&&isMobile());document.body.style.overflow=(S.sidebarOpen&&isMobile())?'hidden':'';}
 function toggleAcc(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+// ── Series Context + Bullpen + Umpire loader ──
+async function loadSeriesAndBullpen(game){
+  const awId=game.teams?.away?.team?.id;
+  const hwId=game.teams?.home?.team?.id;
+  const pk=game.gamePk;
+  const yest=daysAgo(1);
+
+  // Parallel: yesterday's games, boxscore (for officials), recent team schedules
+  const[yestData,boxData,awRecent,hwRecent]=await Promise.all([
+    api(`${MLB}/schedule?sportId=1&teamId=${awId}&startDate=${yest}&endDate=${yest}&hydrate=linescore`),
+    api(`${MLB}/game/${pk}/boxscore`),
+    api(`${MLB}/schedule?sportId=1&teamId=${awId}&startDate=${daysAgo(4)}&endDate=${daysAgo(1)}`),
+    api(`${MLB}/schedule?sportId=1&teamId=${hwId}&startDate=${daysAgo(4)}&endDate=${daysAgo(1)}`),
+  ]);
+
+  // ── Series & yesterday ──
+  const gameNum=game.seriesGameNumber||1;
+  const totalGames=game.gamesInSeries||3;
+  let yesterdayGame=null;
+  for(const d of yestData?.dates||[]){
+    for(const g of d.games||[]){
+      const ids=[g.teams?.away?.team?.id,g.teams?.home?.team?.id];
+      if(ids.includes(awId)&&ids.includes(hwId)&&g.status?.abstractGameState==='Final'){yesterdayGame=g;break;}
+    }
+  }
+  go(()=>renderSeries(game,gameNum,totalGames,yesterdayGame));
+
+  // ── Umpire ──
+  const officials=boxData?.officials||[];
+  const plateUmp=officials.find(o=>o.officialType==='Home Plate');
+  const umpName=plateUmp?.official?.fullName||null;
+  S.plateUmpire=umpName?(UMPIRES[umpName]?{...UMPIRES[umpName],name:umpName}:{name:umpName,runFactor:0,zone:'Normal',note:'No historical data'}):null;
+  go(()=>renderUmpire());
+
+  // ── Bullpen ──
+  const getPks=sched=>{
+    const pks=[];
+    for(const d of sched?.dates||[])
+      for(const g of d.games||[])
+        if(g.status?.abstractGameState==='Final')pks.push(g.gamePk);
+    return pks.slice(-2);
+  };
+  const awPks=getPks(awRecent);
+  const hwPks=getPks(hwRecent);
+  const allUniq=[...new Set([...awPks,...hwPks])];
+  if(!allUniq.length){$('bullpenEl').innerHTML='';return;}
+
+  const boxes=await Promise.all(allUniq.map(p=>api(`${MLB}/game/${p}/boxscore`)));
+
+  function buildUsage(teamId,teamPks){
+    const usage={};
+    teamPks.forEach((pk,pIdx)=>{
+      const box=boxes[allUniq.indexOf(pk)];if(!box)return;
+      const side=box.teams?.away?.team?.id===teamId?'away':'home';
+      const ids=box.teams?.[side]?.pitchers||[];
+      const players=box.teams?.[side]?.players||{};
+      ids.slice(1).forEach(pid=>{  // skip starter (index 0)
+        const p=players[`ID${pid}`];if(!p)return;
+        const ip=parseFloat(p.stats?.pitching?.inningsPitched||'0')||0;
+        if(ip<0.1)return;
+        const rest=teamPks.length-pIdx;
+        if(!usage[pid])usage[pid]={name:p.person?.fullName||'?',totalIP:0,appearances:0,minRest:99,era:parseFloat(p.seasonStats?.pitching?.era)||null};
+        usage[pid].totalIP+=ip;
+        usage[pid].appearances++;
+        usage[pid].minRest=Math.min(usage[pid].minRest,rest);
+      });
+    });
+    return Object.values(usage).sort((a,b)=>a.minRest-b.minRest);
+  }
+
+  const awUsage=buildUsage(awId,awPks);
+  const hwUsage=buildUsage(hwId,hwPks);
+  go(()=>renderBullpen(game,awUsage,hwUsage));
+}
+
+function renderSeries(game,gameNum,totalGames,yesterdayGame){
+  const el=$('seriesEl');if(!el)return;
+  const aw=game.teams?.away?.team?.abbreviation||'?';
+  const hw=game.teams?.home?.team?.abbreviation||'?';
+  const isRubber=(totalGames===3&&gameNum===3)||(totalGames===2&&gameNum===2);
+  let yesterdayStr='';
+  let seriesRec='';
+  if(yesterdayGame){
+    const ya=yesterdayGame.teams?.away?.team?.abbreviation||'?';
+    const yh=yesterdayGame.teams?.home?.team?.abbreviation||'?';
+    const yas=yesterdayGame.teams?.away?.score??0;
+    const yhs=yesterdayGame.teams?.home?.score??0;
+    const winner=yas>yhs?ya:yh;
+    yesterdayStr=`📅 Yesterday: ${ya} ${yas}–${yhs} ${yh} (${winner} won)`;
+    if(gameNum===2)seriesRec=`${winner} leads series 1-0`;
+    else if(gameNum===3)seriesRec='Series tied 1-1';
+  }
+  el.innerHTML=`<div class="series-strip">
+  <div class="series-info">
+    <span class="series-game">🗓 Game ${gameNum} of ${totalGames}</span>
+    ${isRubber?`<span class="series-rubber">🏆 ${totalGames===2?'Series Finale':'Rubber Match'}</span>`:''}
+    ${seriesRec?`<span class="series-rec">${seriesRec}</span>`:''}
+  </div>
+  ${yesterdayStr?`<span class="series-yest">${yesterdayStr}</span>`:''}
+</div>`;
+}
+
+function renderUmpire(){
+  const el=$('umpEl');if(!el)return;
+  const u=S.plateUmpire;
+  if(!u){el.innerHTML='';return;}
+  const rf=u.runFactor;
+  const cls=rf>3?'ump-pos':rf<-3?'ump-neg':'ump-neu';
+  const rfStr=rf>0?`+${rf}%`:rf<0?`${rf}%`:'Avg';
+  const rfLbl=rf>3?'Run-friendly':rf<-3?'Pitcher-friendly':'Neutral zone';
+  el.innerHTML=`<div class="ump-strip">
+    <span>👨‍⚖️ HP Ump:</span>
+    <span class="ump-name">${u.name}</span>
+    <span class="ump-factor ${cls}">${rfLbl} (${rfStr})</span>
+    <span style="font-size:10px;color:var(--text3)">${u.zone} zone · ${u.note}</span>
+  </div>`;
+}
+
+function renderBullpen(game,awUsage,hwUsage){
+  const el=$('bullpenEl');if(!el)return;
+  const aw=game.teams?.away?.team?.abbreviation||'?';
+  const hw=game.teams?.home?.team?.abbreviation||'?';
+  const awId=game.teams?.away?.team?.id;
+  const hwId=game.teams?.home?.team?.id;
+
+  function armRows(arms){
+    if(!arms.length)return`<div style="font-size:11px;color:var(--text3);padding:6px 0">✅ Fully rested — no recent appearances</div>`;
+    return arms.slice(0,6).map(p=>{
+      const rc=p.minRest===1?'var(--red)':p.minRest===2?'var(--gold)':'var(--green)';
+      const restLbl=p.minRest===1?'1d rest':p.minRest===2?'2d rest':'3d+ rest';
+      const eraStr=p.era!==null?` · ERA ${p.era.toFixed(2)}`:'';
+      const lastName=p.name.split(' ').pop();
+      return`<div class="bp-arm">
+        <span class="bp-name">${lastName}</span>
+        <span class="bp-rest" style="color:${rc}">${restLbl} · ${p.totalIP.toFixed(1)} IP in ${p.appearances}g${eraStr}</span>
+      </div>`;
+    }).join('');
+  }
+
+  const awDep=awUsage.filter(p=>p.minRest===1).length;
+  const hwDep=hwUsage.filter(p=>p.minRest===1).length;
+  const bpStatus=(dep)=>dep>=2?'bp-depleted':dep===1?'bp-mixed':'bp-fresh';
+  const bpLbl=(dep)=>dep>=2?'⚡ Taxed':dep===1?'~ Mixed':'✓ Fresh';
+
+  el.innerHTML=`<div class="bp-card">
+  <div class="prob-title">💪 Bullpen Availability</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Relievers who appeared in last 2 games — sorted by rest days</div>
+  <div class="bp-grid">
+    <div class="bp-team">
+      <div class="bp-team-hd">
+        <img class="tab-logo" src="${LOGO(awId)}" onerror="this.style.display='none'">
+        <span style="font-weight:700">${aw}</span>
+        <span class="bp-status ${bpStatus(awDep)}">${bpLbl(awDep)}</span>
+      </div>
+      ${armRows(awUsage)}
+    </div>
+    <div class="bp-team">
+      <div class="bp-team-hd">
+        <img class="tab-logo" src="${LOGO(hwId)}" onerror="this.style.display='none'">
+        <span style="font-weight:700">${hw}</span>
+        <span class="bp-status ${bpStatus(hwDep)}">${bpLbl(hwDep)}</span>
+      </div>
+      ${armRows(hwUsage)}
+    </div>
+  </div>
+</div>`;
+}
 
 // ── NRFI / YRFI ──
 function calcNRFI(game){
