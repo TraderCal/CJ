@@ -277,6 +277,64 @@ select option{background:#1a2236;color:#fff;}
 .toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(12px);background:#1a2236;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 20px;font-size:13px;font-weight:600;color:#fff;z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,.4);}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ── Advanced Bets (NRFI / F5) ── */
+.adv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.adv-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.adv-tab{flex:1;padding:7px 0;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center;}
+.adv-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.nrfi-big{font-size:42px;font-weight:900;line-height:1;text-align:center;}
+.nrfi-bar{height:14px;background:var(--surface2);border-radius:7px;overflow:hidden;display:flex;margin:10px 0 4px;}
+.nrfi-n{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;}
+.nrfi-y{height:100%;background:linear-gradient(90deg,#f97316,#dc2626);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;}
+.nrfi-row{display:flex;gap:8px;margin-top:10px;}
+.nrfi-cell{flex:1;background:var(--surface2);border-radius:8px;padding:8px;text-align:center;}
+.nrfi-val{font-size:16px;font-weight:800;}
+.nrfi-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px;}
+.nrfi-verdict{margin-top:10px;padding:10px 14px;border-radius:9px;display:flex;align-items:center;gap:8px;}
+.nrfi-verdict.lean-n{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);}
+.nrfi-verdict.lean-y{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);}
+.nrfi-verdict.toss{background:var(--surface2);border:1px solid var(--border);}
+.parlay-add{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:none;color:var(--text2);font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
+.parlay-add:hover{border-color:var(--purple);color:var(--purple);}
+.parlay-add.in-parlay{border-color:var(--purple);background:rgba(168,85,247,.12);color:var(--purple);}
+/* ── EV Calculator ── */
+.ev-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.ev-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.ev-input-group{background:var(--surface2);border-radius:10px;padding:10px;}
+.ev-team{font-size:11px;font-weight:700;margin-bottom:6px;}
+.ev-line-input{width:100%;background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:7px;font-size:14px;font-weight:700;text-align:center;outline:none;}
+.ev-line-input:focus{border-color:var(--accent2);}
+.ev-result{margin-top:6px;font-size:11px;}
+.ev-pos{color:var(--green);font-weight:700;}
+.ev-neg{color:var(--red);font-weight:700;}
+.ev-neutral{color:var(--text3);}
+.ev-implied{font-size:10px;color:var(--text3);margin-top:2px;}
+/* ── Parlay Tray ── */
+.parlay-tray{position:fixed;bottom:0;left:0;right:0;z-index:400;transform:translateY(calc(100% - 44px));transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.parlay-tray.open{transform:translateY(0);}
+.parlay-handle{background:var(--purple);height:44px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
+.parlay-handle-title{font-size:13px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+.parlay-count{background:rgba(255,255,255,.25);border-radius:10px;padding:1px 8px;font-size:11px;}
+.parlay-chevron{font-size:14px;color:rgba(255,255,255,.7);transition:transform .3s;}
+.parlay-tray.open .parlay-chevron{transform:rotate(180deg);}
+.parlay-body{background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;max-height:60vh;overflow-y:auto;}
+.parlay-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(42,58,85,.4);}
+.parlay-item:last-child{border-bottom:none;}
+.parlay-item-main{flex:1;}
+.parlay-item-team{font-size:13px;font-weight:700;}
+.parlay-item-sub{font-size:10px;color:var(--text3);}
+.parlay-item-prob{font-size:12px;font-weight:700;color:var(--purple);}
+.parlay-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 6px;border-radius:4px;transition:color .2s;}
+.parlay-remove:hover{color:var(--red);}
+.parlay-summary{background:var(--surface2);border-radius:10px;padding:12px 14px;margin-top:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;}
+.parlay-summary-val{font-size:18px;font-weight:900;}
+.parlay-summary-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;margin-top:2px;}
+.parlay-actions{display:flex;gap:8px;margin-top:10px;}
+.parlay-clear{flex:1;padding:10px;border:1px solid var(--red);border-radius:8px;background:none;color:var(--red);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.parlay-clear:hover{background:rgba(239,68,68,.1);}
+.parlay-share{flex:2;padding:10px;background:var(--purple);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;}
+.parlay-share:hover{opacity:.85;}
+
 @media(max-width:768px){
   .filter-drawer{display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--surface);border-bottom:1px solid var(--border);}
   .filter-drawer .ctrl{flex-direction:row;align-items:center;gap:8px;}
@@ -364,11 +422,13 @@ select option{background:#1a2236;color:#fff;}
     <div id="heroEl"></div>
     <div id="contextEl"></div>
     <div id="probEl"></div>
+    <div id="advancedEl"></div>
     <div id="ouEl"></div>
     <div class="pitch-grid" id="pitchEl"></div>
     <div id="propsEl"></div>
     <div id="matchupEl"></div>
     <div id="oddsEl"></div>
+    <div id="evEl"></div>
   </div>
 </main>
 </div>
@@ -391,6 +451,9 @@ select option{background:#1a2236;color:#fff;}
 <!-- Toast -->
 <div class="toast" id="toastEl"></div>
 
+<!-- Parlay Tray -->
+<div id="parlayTray"></div>
+
 <script>
 const MLB='https://statsapi.mlb.com/api/v1';
 const YR=new Date().getFullYear();
@@ -412,7 +475,9 @@ const S={
   theme:localStorage.getItem('mlb_theme')||'dark',
   liveRefreshInterval:null,liveCountdown:30,
   notifiedGames:new Set(),
-  predictions:JSON.parse(localStorage.getItem('mlb_preds')||'[]')
+  predictions:JSON.parse(localStorage.getItem('mlb_preds')||'[]'),
+  parlay:JSON.parse(localStorage.getItem('mlb_parlay')||'[]'),
+  parlayOpen:false
 };
 
 document.documentElement.setAttribute('data-theme',S.theme);
@@ -433,6 +498,7 @@ window.addEventListener('load',()=>{
   loadGames();loadLeaders();renderAccuracy();
   // Check results for any pending past predictions
   checkPredictionResults();
+  renderParlay();
 });
 
 function onDateChange(val){S.date=val;$('datePicker').value=val;$('datePickerM').value=val;S.selPk=null;S.selGame=null;$('detail').classList.remove('on');$('shareFab').classList.remove('visible');stopLiveRefresh();loadGames();}
@@ -782,7 +848,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -817,10 +883,12 @@ async function selectGame(pk){
   go(()=>renderHero(game,S.weather,S.parkFactor));
   go(()=>renderContext(game));
   go(()=>renderProb(game));
+  go(()=>renderAdvanced(game));
   go(()=>renderOU(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',S.awayPS,S.awayBP,S.awayForm)+pitchCard(game,'home',S.homePS,S.homeBP,S.homeForm);
   go(()=>renderMatchup(game));
   go(()=>renderOdds(game,espn));
+  go(()=>renderEV(game));
   $('shareFab').classList.add('visible');
   go(()=>trackPrediction(game,calcWP(game)));
   $('detail').scrollIntoView({behavior:'smooth',block:'nearest'});
@@ -876,6 +944,273 @@ function showStatus(msg){$('statusEl').innerHTML=`<div class="status-bar"><div c
 function hideStatus(){$('statusEl').innerHTML='';}
 function toggleSidebar(){S.sidebarOpen=!S.sidebarOpen;$('sidebar').classList.toggle('open',S.sidebarOpen);$('menuBtn').classList.toggle('open',S.sidebarOpen);$('backdrop').classList.toggle('on',S.sidebarOpen&&isMobile());document.body.style.overflow=(S.sidebarOpen&&isMobile())?'hidden':'';}
 function toggleAcc(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
+
+// ── NRFI / YRFI ──
+function calcNRFI(game){
+  const awERA=parseFloat(S.awayPS?.era)||4.30;
+  const hwERA=parseFloat(S.homePS?.era)||4.30;
+  const awOPS=parseFloat(S.awayTeamStats?.ops)||0.720;
+  const hwOPS=parseFloat(S.homeTeamStats?.ops)||0.720;
+  const parkMult=(S.parkFactor?.run||100)/100;
+  // Poisson lambda per half-inning with first-inning premium (1.10)
+  const topL=(hwERA/18)*1.10*(awOPS/0.720)*parkMult;
+  const botL=(awERA/18)*1.10*(hwOPS/0.720)*parkMult;
+  const pTop=Math.exp(-topL);
+  const pBot=Math.exp(-botL);
+  const pN=pTop*pBot;
+  return{nrfi:Math.round(pN*100),yrfi:100-Math.round(pN*100),away0:Math.round(pTop*100),home0:Math.round(pBot*100),awERA,hwERA};
+}
+
+// ── F5 Win Probability ──
+function calcF5WP(game){
+  const aw=game.teams?.away,hw=game.teams?.home;
+  const awW=aw?.leagueRecord?.wins||0,awL=aw?.leagueRecord?.losses||0;
+  const hwW=hw?.leagueRecord?.wins||0,hwL=hw?.leagueRecord?.losses||0;
+  const awWP=awW/(awW+awL)||.5,hwWP=hwW/(hwW+hwL)||.5;
+  const awERA=parseFloat(S.awayPS?.era)||4.30;
+  const hwERA=parseFloat(S.homePS?.era)||4.30;
+  const awWHIP=parseFloat(S.awayPS?.whip)||1.35;
+  const hwWHIP=parseFloat(S.homePS?.whip)||1.35;
+  const awK9=parseFloat(S.awayPS?.strikeoutsPer9Inn)||8.0;
+  const hwK9=parseFloat(S.homePS?.strikeoutsPer9Inn)||8.0;
+  const awEraS=Math.max(0,Math.min(100,(6-awERA)/4*100));
+  const hwEraS=Math.max(0,Math.min(100,(6-hwERA)/4*100));
+  const awWhipS=Math.max(0,Math.min(100,(2-awWHIP)*100));
+  const hwWhipS=Math.max(0,Math.min(100,(2-hwWHIP)*100));
+  const awK9S=Math.max(0,Math.min(100,(awK9-4)/8*100));
+  const hwK9S=Math.max(0,Math.min(100,(hwK9-4)/8*100));
+  const awFW=S.awayForm?.filter(g=>g.result==='W').length??5,awFL=S.awayForm?.length||10;
+  const hwFW=S.homeForm?.filter(g=>g.result==='W').length??5,hwFL=S.homeForm?.length||10;
+  const awFS=(awFW/awFL),hwFS=(hwFW/hwFL);
+  // F5: heavy SP weight, smaller home edge
+  const hC=hwWP*.18+(hwEraS/100)*.37+(hwWhipS/100)*.18+(hwK9S/100)*.13+(hwFS*.10)+.02;
+  const aC=awWP*.18+(awEraS/100)*.37+(awWhipS/100)*.18+(awK9S/100)*.13+(awFS*.10);
+  const tot=hC+aC||1;
+  const hwF=Math.max(.35,Math.min(.65,.40+(hC/tot-.5)*.50));
+  return{home:Math.round(hwF*100),away:Math.round((1-hwF)*100),awERA,hwERA};
+}
+
+// ── Render Advanced (NRFI + F5 in one card) ──
+function renderAdvanced(game){
+  const el=$('advancedEl');if(!el)return;
+  if(!S.awayPS&&!S.homePS){el.innerHTML='';return;}
+  const aw=game.teams?.away?.team?.abbreviation||'?';
+  const hw=game.teams?.home?.team?.abbreviation||'?';
+  const nr=calcNRFI(game);
+  const f5=calcF5WP(game);
+  const nv=nr.nrfi>=65?{cls:'lean-n',icon:'🔒',txt:`NRFI Lean — both SPs look sharp`}
+    :nr.nrfi<=52?{cls:'lean-y',icon:'🔥',txt:`YRFI Lean — expect a run in the 1st`}
+    :{cls:'toss',icon:'⚖️',txt:`Toss-up — 50/50 NRFI`};
+  const ipN=S.parlay.some(p=>p.id===`nrfi-n-${game.gamePk}`);
+  const ipY=S.parlay.some(p=>p.id===`nrfi-y-${game.gamePk}`);
+  const ipF5A=S.parlay.some(p=>p.id===`f5-a-${game.gamePk}`);
+  const ipF5H=S.parlay.some(p=>p.id===`f5-h-${game.gamePk}`);
+  const awERA_d=typeof nr.awERA==='number'?nr.awERA.toFixed(2):nr.awERA;
+  const hwERA_d=typeof nr.hwERA==='number'?nr.hwERA.toFixed(2):nr.hwERA;
+  const f5awERA_d=typeof f5.awERA==='number'?f5.awERA.toFixed(2):f5.awERA;
+  const f5hwERA_d=typeof f5.hwERA==='number'?f5.hwERA.toFixed(2):f5.hwERA;
+  el.innerHTML=`
+<div class="adv-card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <div class="prob-title" style="margin-bottom:0">🎰 Advanced Bets</div>
+  </div>
+  <div class="adv-tabs">
+    <button class="adv-tab active" id="advTab-nrfi" onclick="switchAdvTab('nrfi')">⚡ NRFI/YRFI</button>
+    <button class="adv-tab" id="advTab-f5" onclick="switchAdvTab('f5')">5️⃣ First 5 Innings</button>
+  </div>
+  <div id="advPanel-nrfi">
+    <div style="display:flex;align-items:flex-end;justify-content:center;gap:28px;margin-bottom:8px">
+      <div style="text-align:center"><div class="nrfi-big" style="color:var(--green)">${nr.nrfi}%</div><div style="font-size:11px;font-weight:700;color:var(--green)">NRFI</div></div>
+      <div style="font-size:18px;color:var(--text3);padding-bottom:4px">vs</div>
+      <div style="text-align:center"><div class="nrfi-big" style="color:var(--orange)">${nr.yrfi}%</div><div style="font-size:11px;font-weight:700;color:var(--orange)">YRFI</div></div>
+    </div>
+    <div class="nrfi-bar"><div class="nrfi-n" style="width:${nr.nrfi}%">NRFI</div><div class="nrfi-y" style="width:${nr.yrfi}%">YRFI</div></div>
+    <div class="nrfi-row">
+      <div class="nrfi-cell"><div class="nrfi-val" style="color:var(--red)">${awERA_d}</div><div class="nrfi-lbl">${aw} SP ERA</div></div>
+      <div class="nrfi-cell"><div class="nrfi-val">${nr.away0}%</div><div class="nrfi-lbl">${aw} 0 in T1</div></div>
+      <div class="nrfi-cell"><div class="nrfi-val">${nr.home0}%</div><div class="nrfi-lbl">${hw} 0 in B1</div></div>
+      <div class="nrfi-cell"><div class="nrfi-val" style="color:var(--accent2)">${hwERA_d}</div><div class="nrfi-lbl">${hw} SP ERA</div></div>
+    </div>
+    <div class="nrfi-verdict ${nv.cls}"><span style="font-size:18px">${nv.icon}</span><span style="font-size:12px;font-weight:600">${nv.txt}</span></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="parlay-add${ipN?' in-parlay':''}" onclick="toggleParlay({id:'nrfi-n-${game.gamePk}',team:'NRFI',prob:${nr.nrfi},label:'${aw} @ ${hw}',type:'NRFI'})">${ipN?'✓ NRFI Added':'+ Add NRFI ('+nr.nrfi+'%)'}</button>
+      <button class="parlay-add${ipY?' in-parlay':''}" onclick="toggleParlay({id:'nrfi-y-${game.gamePk}',team:'YRFI',prob:${nr.yrfi},label:'${aw} @ ${hw}',type:'YRFI'})">${ipY?'✓ YRFI Added':'+ Add YRFI ('+nr.yrfi+'%)'}</button>
+    </div>
+  </div>
+  <div id="advPanel-f5" style="display:none">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Win probability after 5 innings — starter quality only, no bullpen effect</div>
+    <div class="prob-bar-wrap" style="margin-bottom:8px">
+      <div class="prob-away" style="width:${f5.away}%;background:linear-gradient(90deg,#dc2626,#b91c1c)">${f5.away}%</div>
+      <div class="prob-home" style="width:${f5.home}%">${f5.home}%</div>
+    </div>
+    <div class="prob-labels"><span style="color:var(--red)">${aw} ${f5.away}%</span><span style="color:var(--accent2)">${hw} ${f5.home}%</span></div>
+    <div class="nrfi-row" style="margin-top:10px">
+      <div class="nrfi-cell"><div class="nrfi-val" style="color:${parseFloat(f5awERA_d)<3.5?'var(--green)':parseFloat(f5awERA_d)>4.5?'var(--red)':'var(--gold)'}">${f5awERA_d}</div><div class="nrfi-lbl">${aw} SP ERA</div></div>
+      <div class="nrfi-cell"><div class="nrfi-val" style="color:${parseFloat(f5hwERA_d)<3.5?'var(--green)':parseFloat(f5hwERA_d)>4.5?'var(--red)':'var(--gold)'}">${f5hwERA_d}</div><div class="nrfi-lbl">${hw} SP ERA</div></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+      <button class="parlay-add${ipF5A?' in-parlay':''}" onclick="toggleParlay({id:'f5-a-${game.gamePk}',team:'${aw} F5',prob:${f5.away},label:'${aw} @ ${hw}',type:'F5'})">${ipF5A?'✓ '+aw+' F5 Added':'+ '+aw+' F5 ('+f5.away+'%)'}</button>
+      <button class="parlay-add${ipF5H?' in-parlay':''}" onclick="toggleParlay({id:'f5-h-${game.gamePk}',team:'${hw} F5',prob:${f5.home},label:'${aw} @ ${hw}',type:'F5'})">${ipF5H?'✓ '+hw+' F5 Added':'+ '+hw+' F5 ('+f5.home+'%)'}</button>
+    </div>
+  </div>
+</div>`;
+}
+
+function switchAdvTab(tab){
+  ['nrfi','f5'].forEach(t=>{
+    const b=$('advTab-'+t),p=$('advPanel-'+t);
+    if(b)b.classList.toggle('active',t===tab);
+    if(p)p.style.display=t===tab?'':'none';
+  });
+}
+
+// ── EV Calculator ──
+function calcEV(americanLine,modelPct){
+  const l=parseInt(americanLine);if(!l||isNaN(l)||l===0)return null;
+  const p=modelPct/100;
+  const profit=l>0?l/100:100/Math.abs(l);
+  return Math.round((p*profit-(1-p)*1)*1000)/10;
+}
+function impliedProb(americanLine){
+  const l=parseInt(americanLine);if(!l||isNaN(l)||l===0)return null;
+  return l>0?Math.round(100/(l+100)*1000)/10:Math.round(Math.abs(l)/(Math.abs(l)+100)*1000)/10;
+}
+
+function renderEV(game){
+  const el=$('evEl');if(!el)return;
+  const wp=calcWP(game);
+  const f5=calcF5WP(game);
+  const aw=game.teams?.away?.team?.abbreviation||'?';
+  const hw=game.teams?.home?.team?.abbreviation||'?';
+  el.innerHTML=`
+<div class="ev-card">
+  <div class="prob-title">💡 Expected Value Calculator</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Enter a Vegas moneyline (e.g. <b>-150</b> or <b>+130</b>) to see if there's positive EV</div>
+  <div class="ev-inputs">
+    <div class="ev-input-group">
+      <div class="ev-team" style="color:var(--red)">📤 ${aw} (Away)</div>
+      <input class="ev-line-input" id="evLine-aw" type="number" placeholder="-150" oninput="updateEV('aw',${wp.away},'${aw}')">
+      <div class="ev-result" id="evResult-aw"><span class="ev-neutral">Enter a line above</span></div>
+      <div class="ev-implied" id="evImpl-aw"></div>
+    </div>
+    <div class="ev-input-group">
+      <div class="ev-team" style="color:var(--accent2)">🏠 ${hw} (Home)</div>
+      <input class="ev-line-input" id="evLine-hw" type="number" placeholder="+130" oninput="updateEV('hw',${wp.home},'${hw}')">
+      <div class="ev-result" id="evResult-hw"><span class="ev-neutral">Enter a line above</span></div>
+      <div class="ev-implied" id="evImpl-hw"></div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center">Model: ${aw} ${wp.away}% ML · ${hw} ${wp.home}% ML · F5: ${aw} ${f5.away}% / ${hw} ${f5.home}%</div>
+</div>`;
+}
+
+function updateEV(side,modelProb){
+  const inp=$('evLine-'+side),res=$('evResult-'+side),impl=$('evImpl-'+side);
+  if(!inp||!res)return;
+  const line=parseInt(inp.value);
+  if(!line||isNaN(line)){res.innerHTML='<span class="ev-neutral">Enter a line above</span>';if(impl)impl.innerHTML='';return;}
+  const ev=calcEV(line,modelProb);
+  const ip=impliedProb(line);
+  const edge=Math.round((modelProb-ip)*10)/10;
+  if(ev===null){res.innerHTML='<span class="ev-neutral">—</span>';return;}
+  const cls=ev>0?'ev-pos':ev<0?'ev-neg':'ev-neutral';
+  const lbl=ev>0?'✅ +EV':'❌ -EV';
+  res.innerHTML=`<span class="${cls}">${lbl}: ${ev>0?'+':''}${ev}% per $100</span>`;
+  if(impl)impl.innerHTML=`Implied: ${ip}% · Model: ${modelProb}% · Edge: ${edge>0?'+':''}${edge}%`;
+}
+
+// ── Parlay Builder ──
+function calcParlayOdds(picks){
+  if(!picks.length)return{prob:0,american:0,decimal:1};
+  const cp=picks.reduce((p,x)=>p*(x.prob/100),1);
+  const dec=1/cp;
+  const am=dec>=2?Math.round((dec-1)*100):-Math.round(100/(dec-1));
+  return{prob:Math.round(cp*1000)/10,american:am,decimal:Math.round(dec*100)/100};
+}
+
+function toggleParlay(pick){
+  const idx=S.parlay.findIndex(p=>p.id===pick.id);
+  if(idx>=0){
+    S.parlay.splice(idx,1);
+    showToast('🗑️ Removed from parlay');
+  }else{
+    if(S.parlay.length>=8){showToast('⚠️ Max 8 legs');return;}
+    S.parlay.push(pick);
+    S.parlayOpen=true;
+    showToast('✅ '+pick.team+' added to parlay!');
+  }
+  localStorage.setItem('mlb_parlay',JSON.stringify(S.parlay));
+  renderParlay();
+  const game=S.selGame;if(game)go(()=>renderAdvanced(game));
+}
+
+function removeFromParlay(i){
+  S.parlay.splice(i,1);
+  localStorage.setItem('mlb_parlay',JSON.stringify(S.parlay));
+  renderParlay();
+  const game=S.selGame;if(game)go(()=>renderAdvanced(game));
+}
+
+function clearParlay(){
+  S.parlay=[];S.parlayOpen=false;
+  localStorage.removeItem('mlb_parlay');
+  $('parlayTray').innerHTML='';
+  const fab=$('shareFab');if(fab)fab.style.bottom='';
+  showToast('🗑️ Parlay cleared');
+  const game=S.selGame;if(game)go(()=>renderAdvanced(game));
+}
+
+function toggleParlayTray(){
+  S.parlayOpen=!S.parlayOpen;
+  const t=$('parlayTray')?.querySelector('.parlay-tray');
+  if(t)t.classList.toggle('open',S.parlayOpen);
+}
+
+function copyParlayText(){
+  const picks=S.parlay,odds=calcParlayOdds(picks);
+  const aStr=odds.american>0?`+${odds.american}`:`${odds.american}`;
+  const lines=picks.map((p,i)=>`${i+1}. ${p.team} (${p.type}) — ${p.label} · ${p.prob}% model`);
+  const txt=`🎰 MLB Parlay — ${picks.length} Leg${picks.length!==1?'s':''}\n\n${lines.join('\n')}\n\n📊 Combined: ${odds.prob}% win prob · Odds: ${aStr} · ${odds.decimal}x payout\n\ntradercal.github.io/CJ`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('📋 Parlay copied!')).catch(()=>showToast('⚠️ Copy failed'));
+}
+
+function renderParlay(){
+  const tray=$('parlayTray');if(!tray)return;
+  const picks=S.parlay;
+  const fab=$('shareFab');
+  if(!picks.length){tray.innerHTML='';if(fab)fab.style.bottom='';return;}
+  if(fab)fab.style.bottom='62px';
+  const odds=calcParlayOdds(picks);
+  const aStr=odds.american>0?`+${odds.american}`:`${odds.american}`;
+  const items=picks.map((p,i)=>`
+    <div class="parlay-item">
+      <div class="parlay-item-main">
+        <div class="parlay-item-team">${p.team}</div>
+        <div class="parlay-item-sub">${p.label} · ${p.type}</div>
+      </div>
+      <div class="parlay-item-prob">${p.prob}%</div>
+      <button class="parlay-remove" onclick="removeFromParlay(${i})">✕</button>
+    </div>`).join('');
+  tray.innerHTML=`
+<div class="parlay-tray${S.parlayOpen?' open':''}">
+  <div class="parlay-handle" onclick="toggleParlayTray()">
+    <div class="parlay-handle-title">🎰 Parlay Builder <span class="parlay-count">${picks.length} leg${picks.length!==1?'s':''}</span></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:800;color:rgba(255,255,255,.85)">${aStr}</span><span class="parlay-chevron">▲</span></div>
+  </div>
+  <div class="parlay-body">
+    ${items}
+    <div class="parlay-summary">
+      <div><div class="parlay-summary-val" style="color:var(--purple)">${odds.prob}%</div><div class="parlay-summary-lbl">Win Prob</div></div>
+      <div><div class="parlay-summary-val" style="color:var(--gold)">${aStr}</div><div class="parlay-summary-lbl">Parlay Odds</div></div>
+      <div><div class="parlay-summary-val">${odds.decimal}x</div><div class="parlay-summary-lbl">Payout Mult</div></div>
+    </div>
+    <div class="parlay-actions">
+      <button class="parlay-clear" onclick="clearParlay()">🗑️ Clear All</button>
+      <button class="parlay-share" onclick="copyParlayText()">📋 Copy Parlay Card</button>
+    </div>
+  </div>
+</div>`;
+}
 </script>
 </body>
 </html>
