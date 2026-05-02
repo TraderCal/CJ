@@ -293,6 +293,16 @@ select option{background:#1a2236;color:#fff;}
 .day-hr-badge{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:var(--red);font-size:22px;font-weight:900;padding:8px 14px;border-radius:10px;flex-shrink:0;text-align:center;line-height:1;}
 .day-hr-badge-lbl{font-size:9px;font-weight:700;color:var(--red);text-align:center;text-transform:uppercase;margin-top:3px;opacity:.8;}
 .day-hr-loading{background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius);padding:12px 16px;font-size:12px;color:var(--text3);display:flex;align-items:center;gap:8px;}
+.day-hr-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+.day-hr-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s;}
+.day-hr-row:hover{border-color:rgba(240,165,0,.5);background:var(--surface2);}
+.day-hr-row-rank{font-size:14px;font-weight:900;color:var(--text3);width:18px;flex-shrink:0;text-align:center;}
+.day-hr-row-hs{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(240,165,0,.3);flex-shrink:0;background:var(--surface2);}
+.day-hr-row-main{flex:1;min-width:0;}
+.day-hr-row-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.day-hr-row-sub{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.day-hr-row-pct{font-size:15px;font-weight:900;color:var(--red);flex-shrink:0;min-width:36px;text-align:right;}
+.day-hr-section-title{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:700;margin:10px 0 4px 2px;}
 /* ── Series Strip ── */
 .series-strip{background:linear-gradient(90deg,rgba(168,85,247,.08),rgba(168,85,247,.02));border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;}
 .series-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -1058,12 +1068,12 @@ function hideStatus(){$('statusEl').innerHTML='';}
 function toggleSidebar(){S.sidebarOpen=!S.sidebarOpen;$('sidebar').classList.toggle('open',S.sidebarOpen);$('menuBtn').classList.toggle('open',S.sidebarOpen);$('backdrop').classList.toggle('on',S.sidebarOpen&&isMobile());document.body.style.overflow=(S.sidebarOpen&&isMobile())?'hidden':'';}
 function toggleAcc(btn){btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');}
 
-// ── Day Best HR Pick ──
+// ── Day Best HR Pick (Top 5) ──
 async function loadDayBestHR(){
   const el=$('dayBestHREl');if(!el)return;
   const games=S.games.filter(g=>g.status?.abstractGameState!=='Final');
   if(!games.length){el.innerHTML='';return;}
-  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Finding today\'s best HR candidate…</div>';
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Finding today\'s top HR candidates…</div>';
 
   // Collect all SP ids
   const spIds=[...new Set(games.flatMap(g=>[
@@ -1076,71 +1086,114 @@ async function loadDayBestHR(){
   const spMap={};
   spIds.forEach((id,i)=>{const s=spStats[i]?.stats?.[0]?.splits?.[0]?.stat;if(s)spMap[id]=s;});
 
-  // Score each team's batting matchup: (SP ERA * SP HR/9 * park HR factor)
-  let best=null,bestScore=-1;
+  // Score EVERY team's batting matchup, keep top 5 unique teams
+  const matchups=[];
   games.forEach(g=>{
     const park=(PARK_FACTORS[g.venue?.id]?.hr||100)/100;
-    [{side:'away',spId:g.teams?.home?.probablePitcher?.id,battingTeam:g.teams?.away},{side:'home',spId:g.teams?.away?.probablePitcher?.id,battingTeam:g.teams?.home}]
-    .forEach(({side,spId,battingTeam})=>{
-      const sp=spMap[spId];if(!sp)return;
+    [{side:'away',spId:g.teams?.home?.probablePitcher?.id,battingTeam:g.teams?.away,oppSP:g.teams?.home?.probablePitcher},{side:'home',spId:g.teams?.away?.probablePitcher?.id,battingTeam:g.teams?.home,oppSP:g.teams?.away?.probablePitcher}]
+    .forEach(({side,spId,battingTeam,oppSP})=>{
+      const sp=spMap[spId];if(!sp||!battingTeam?.team?.id)return;
       const era=parseFloat(sp.era)||4.30;
       const hr9=parseFloat(sp.homeRunsPer9)||1.2;
-      // Higher ERA + more HR/9 + hitter-friendly park = higher score
       const score=(era/4.30)*(hr9/1.2)*park;
-      if(score>bestScore){
-        bestScore=score;
-        best={game:g,battingTeamId:battingTeam?.team?.id,battingTeamAbbr:battingTeam?.team?.abbreviation,battingTeamName:battingTeam?.team?.name,sp,spName:side==='away'?g.teams?.home?.probablePitcher?.fullName:g.teams?.away?.probablePitcher?.fullName,oppAbbr:side==='away'?g.teams?.home?.team?.abbreviation:g.teams?.away?.team?.abbreviation};
-      }
+      matchups.push({score,game:g,battingTeamId:battingTeam.team.id,battingTeamAbbr:battingTeam.team.abbreviation,battingTeamName:battingTeam.team.name,sp,spName:oppSP?.fullName||'',oppAbbr:side==='away'?g.teams?.home?.team?.abbreviation:g.teams?.away?.team?.abbreviation});
     });
   });
 
-  if(!best){el.innerHTML='';return;}
+  matchups.sort((a,b)=>b.score-a.score);
 
-  // Fetch the batting team's roster
-  const rData=await api(`${MLB}/teams/${best.battingTeamId}/roster?rosterType=active&season=${YR}&hydrate=person(stats(type=season,group=hitting,gameType=R,season=${YR}))`);
-  const roster=rData?.roster||[];
-  const parkMult=(PARK_FACTORS[best.game.venue?.id]?.hr||100)/100;
-  const pHR9=parseFloat(best.sp.homeRunsPer9)||1.2;
+  // Keep top 5 unique batting teams
+  const seen=new Set();
+  const top5matchups=[];
+  for(const m of matchups){
+    if(!seen.has(m.battingTeamId)){seen.add(m.battingTeamId);top5matchups.push(m);}
+    if(top5matchups.length>=5)break;
+  }
+  if(!top5matchups.length){el.innerHTML='';return;}
 
-  const scored=roster
-    .filter(p=>p.position?.type!=='Pitcher'&&p.position?.abbreviation!=='P')
-    .map(p=>{
-      const st=p.person?.stats?.[0]?.splits?.[0]?.stat||{};
-      const ab=parseInt(st.atBats)||0,hrN=parseInt(st.homeRuns)||0;
-      const slg=parseFloat(st.slugging)||.380,ops=parseFloat(st.ops)||.720;
-      const avg=parseFloat(st.avg)||.240;
-      const hr_rate=ab>20?hrN/ab:Math.max(.01,(slg-.28)*.12);
-      const hrP=Math.min(30,Math.max(1,hr_rate*(pHR9/1.2)*(slg/.420)*100*parkMult));
-      return{...p,hrP,hrN,slg,ops,avg,ab,st};
-    })
-    .filter(p=>p.ab>5)
-    .sort((a,b)=>b.hrP-a.hrP);
+  // Fetch all rosters in parallel
+  const rosterDatas=await Promise.all(top5matchups.map(m=>api(`${MLB}/teams/${m.battingTeamId}/roster?rosterType=active&season=${YR}&hydrate=person(stats(type=season,group=hitting,gameType=R,season=${YR}))`)));
 
-  if(!scored.length){el.innerHTML='';return;}
-  const top=scored[0];
-  S.dayBestHR={player:top,best,game:best.game};
+  // Score every hitter across all teams, combine into global list
+  const allPicks=[];
+  top5matchups.forEach((m,i)=>{
+    const roster=rosterDatas[i]?.roster||[];
+    const parkMult=(PARK_FACTORS[m.game.venue?.id]?.hr||100)/100;
+    const pHR9=parseFloat(m.sp.homeRunsPer9)||1.2;
+    roster
+      .filter(p=>p.position?.type!=='Pitcher'&&p.position?.abbreviation!=='P')
+      .forEach(p=>{
+        const st=p.person?.stats?.[0]?.splits?.[0]?.stat||{};
+        const ab=parseInt(st.atBats)||0;if(ab<8)return;
+        const hrN=parseInt(st.homeRuns)||0;
+        const slg=parseFloat(st.slugging)||.380,ops=parseFloat(st.ops)||.720;
+        const avg=parseFloat(st.avg)||.240;
+        const hr_rate=ab>20?hrN/ab:Math.max(.01,(slg-.28)*.12);
+        const hrP=Math.min(30,Math.max(1,hr_rate*(pHR9/1.2)*(slg/.420)*100*parkMult));
+        allPicks.push({...p,hrP,hrN,slg,ops,avg,ab,st,_matchup:m});
+      });
+  });
+
+  allPicks.sort((a,b)=>b.hrP-a.hrP);
+
+  // Deduplicate by player id (same player could theoretically appear once)
+  const seenP=new Set();
+  const picks=[];
+  for(const p of allPicks){
+    const pid=p.person?.id;
+    if(!seenP.has(pid)){seenP.add(pid);picks.push(p);}
+    if(picks.length>=5)break;
+  }
+
+  if(!picks.length){el.innerHTML='';return;}
+  S.dayBestHR=picks;
   renderDayBestHR();
 }
 
 function renderDayBestHR(){
   const el=$('dayBestHREl');if(!el)return;
-  const d=S.dayBestHR;if(!d){el.innerHTML='';return;}
-  const{player:p,best,game}=d;
+  const picks=S.dayBestHR;if(!picks||!picks.length){el.innerHTML='';return;}
+
+  // ── #1 featured card ──
+  const p=picks[0];
+  const m=p._matchup;
   const pid=p.person?.id;
   const name=p.person?.fullName||'?';
   const pos=p.position?.abbreviation||'';
   const hrP=Math.round(p.hrP);
-  const t=game.gameDate?new Date(game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
-  const parkHR=PARK_FACTORS[game.venue?.id]?.hr??'—';
-  const spERA=parseFloat(best.sp.era)||4.30;
+  const t=m.game.gameDate?new Date(m.game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+  const parkHR=PARK_FACTORS[m.game.venue?.id]?.hr??'—';
+  const spERA=parseFloat(m.sp.era)||4.30;
   const headshot=`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${pid}/headshot/67/current`;
+
+  // ── #2-5 compact rows ──
+  const medals=['🥈','🥉','4️⃣','5️⃣'];
+  const rowsHTML=picks.slice(1).map((rp,ri)=>{
+    const rm=rp._matchup;
+    const rpid=rp.person?.id;
+    const rname=rp.person?.fullName||'?';
+    const rpos=rp.position?.abbreviation||'';
+    const rhrP=Math.round(rp.hrP);
+    const rt=rm.game.gameDate?new Date(rm.game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+    const rhs=`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${rpid}/headshot/67/current`;
+    return`<div class="day-hr-row" onclick="onGameChange(${rm.game.gamePk})" title="Click to view matchup">
+  <div class="day-hr-row-rank">${medals[ri]}</div>
+  <img class="day-hr-row-hs" src="${rhs}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${rname}">
+  <div class="day-hr-row-main">
+    <div class="day-hr-row-name">${rname}</div>
+    <div class="day-hr-row-sub">${rm.battingTeamAbbr} ${rpos} · vs ${rm.spName||rm.oppAbbr} (ERA ${parseFloat(rm.sp.era).toFixed(2)||'?'}) · ${rt}</div>
+  </div>
+  <div class="day-hr-row-pct">${rhrP}%</div>
+</div>`;
+  }).join('');
+
   el.innerHTML=`
-<div class="day-hr-card" onclick="onGameChange(${game.gamePk})" title="Click to view full matchup">
+<div class="day-hr-card" onclick="onGameChange(${m.game.gamePk})" title="Click to view full matchup">
   <img class="day-hr-headshot" src="${headshot}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${name}">
   <div class="day-hr-main">
-    <div class="day-hr-title">🔥 Top HR Candidate Today</div>
+    <div class="day-hr-title">🔥 #1 HR Candidate Today</div>
     <div class="day-hr-player">${name}</div>
-    <div class="day-hr-sub">${best.battingTeamAbbr} ${pos} · vs ${best.spName||best.oppAbbr} SP · ${t}</div>
+    <div class="day-hr-sub">${m.battingTeamAbbr} ${pos} · vs ${m.spName||m.oppAbbr} SP · ${t}</div>
     <div class="day-hr-stats">
       <div class="day-hr-stat"><div class="day-hr-stat-val">${p.hrN}</div><div class="day-hr-stat-lbl">HR</div></div>
       <div class="day-hr-stat"><div class="day-hr-stat-val">${p.slg.toFixed?p.slg.toFixed(3):p.slg}</div><div class="day-hr-stat-lbl">SLG</div></div>
@@ -1153,7 +1206,8 @@ function renderDayBestHR(){
     <div class="day-hr-badge">${hrP}%</div>
     <div class="day-hr-badge-lbl">HR Prob</div>
   </div>
-</div>`;
+</div>
+${picks.length>1?`<div class="day-hr-section-title">Also worth watching</div><div class="day-hr-list">${rowsHTML}</div>`:''}`;
 }
 
 // ── Series Context + Bullpen + Umpire loader ──
