@@ -309,6 +309,27 @@ select option{background:#1a2236;color:#fff;}
 .rating-good{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.3);}
 .rating-fair{background:rgba(240,165,0,.15);color:var(--gold);border:1px solid rgba(240,165,0,.3);}
 .rating-below{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.upset-card{border-radius:var(--radius);padding:14px 16px;margin-bottom:4px;border:1.5px solid;position:relative;overflow:hidden;}
+.upset-card::before{content:'';position:absolute;inset:0;opacity:.04;pointer-events:none;}
+.upset-high{background:rgba(239,68,68,.09);border-color:rgba(239,68,68,.45);}
+.upset-medium{background:rgba(240,165,0,.09);border-color:rgba(240,165,0,.40);}
+.upset-low{background:rgba(99,102,241,.09);border-color:rgba(99,102,241,.35);}
+.upset-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px;}
+.upset-title{font-size:13px;font-weight:900;letter-spacing:.2px;}
+.upset-high .upset-title{color:var(--red);}
+.upset-medium .upset-title{color:var(--gold);}
+.upset-low .upset-title{color:#818cf8;}
+.upset-teams{font-size:12px;font-weight:700;color:var(--text2);background:rgba(0,0,0,.25);padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.upset-factors{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.upset-factor{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);color:var(--text2);}
+.upset-reason-list{display:flex;flex-direction:column;gap:3px;margin-bottom:7px;}
+.upset-reason{font-size:11px;color:var(--text2);padding-left:2px;}
+.upset-score-bar{height:4px;border-radius:4px;background:rgba(255,255,255,.08);margin-bottom:6px;overflow:hidden;}
+.upset-score-fill{height:100%;border-radius:4px;transition:width .5s;}
+.upset-high .upset-score-fill{background:var(--red);}
+.upset-medium .upset-score-fill{background:var(--gold);}
+.upset-low .upset-score-fill{background:#818cf8;}
+.upset-note{font-size:10px;color:var(--text3);font-style:italic;}
 /* ── Series Strip ── */
 .series-strip{background:linear-gradient(90deg,rgba(168,85,247,.08),rgba(168,85,247,.02));border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 14px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;}
 .series-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
@@ -481,6 +502,7 @@ select option{background:#1a2236;color:#fff;}
   <div class="game-grid" id="gameGrid"></div>
   <div class="detail" id="detail">
     <div id="heroEl"></div>
+    <div id="upsetEl"></div>
     <div id="seriesEl"></div>
     <div id="umpEl"></div>
     <div id="contextEl"></div>
@@ -956,7 +978,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -991,6 +1013,7 @@ async function selectGame(pk){
   // Stage 3 — re-render with full data
   go(()=>renderHero(game,S.weather,S.parkFactor));
   go(()=>renderContext(game));
+  go(()=>renderUpset(game));
   go(()=>renderProb(game));
   go(()=>renderAdvanced(game));
   go(()=>renderOU(game));
@@ -1023,6 +1046,79 @@ function windDirLabel(deg){return['N','NE','E','SE','S','SW','W','NW'][Math.roun
 function weatherHRBoost(w){if(!w||w.indoor)return 0;let b=0;if(w.temp>85)b+=8;else if(w.temp>75)b+=4;else if(w.temp>65)b+=2;else if(w.temp<50)b-=8;else if(w.temp<60)b-=4;if(w.wind>15){const d=windDirLabel(w.windDir);if(['N','NE','E'].includes(d))b+=10;else if(['S','SW','W'].includes(d))b-=8;}else if(w.wind>8){const d=windDirLabel(w.windDir);if(['N','NE','E'].includes(d))b+=4;else if(['S','SW','W'].includes(d))b-=4;}return b;}
 
 function renderHero(game,weather,park){const aw=game.teams?.away,hw=game.teams?.home;const awA=aw?.team?.abbreviation||'?',hwA=hw?.team?.abbreviation||'?';const awId=aw?.team?.id,hwId=hw?.team?.id;const awW=aw?.leagueRecord?.wins||0,awL=aw?.leagueRecord?.losses||0;const hwW=hw?.leagueRecord?.wins||0,hwL=hw?.leagueRecord?.losses||0;const awS=game.linescore?.teams?.away?.runs??'',hwS=game.linescore?.teams?.home?.runs??'';const isLive=game.status?.abstractGameState==='Live';const inning=isLive&&game.linescore?.currentInningOrdinal?` ${game.linescore.currentInningOrdinal}`:'';const t=game.gameDate?new Date(game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'TBD';const awP=game.teams?.away?.probablePitcher?.fullName||'TBD',hwP=game.teams?.home?.probablePitcher?.fullName||'TBD';let wb='',wib='',pb='';if(weather){if(weather.indoor)wb=`<div class="hero-badge weather">🏟️ Indoor</div>`;else{wb=`<div class="hero-badge weather">${weather.precip>50?'🌧️':weather.precip>20?'🌦️':'☀️'} ${weather.temp}°F · ${weather.precip}% rain</div>`;wib=`<div class="hero-badge wind">💨 ${weather.wind}mph ${windDirLabel(weather.windDir)}</div>`;}}if(park){const c=park.hr>105?'var(--red)':park.hr<95?'var(--blue)':'var(--gold)';pb=`<div class="hero-badge park">🏟️ HR Factor: <span style="color:${c};font-weight:700">${park.hr}</span></div>`;}const score=isLive?`<div style="font-size:28px;font-weight:900;color:var(--gold)">${awS} - ${hwS} <span style="font-size:12px;color:var(--green)">${inning}</span></div>`:'@';$('heroEl').innerHTML=`<div class="hero"><div class="hero-teams"><div class="hero-team"><img class="hero-logo" src="${LOGO(awId)}" onerror="this.style.display='none'"><div class="hero-abbr" style="color:var(--accent)">${awA}</div><div class="hero-name">${aw?.team?.name||''}</div><div class="hero-rec">${awW}-${awL}</div><div class="hero-sp">${awP}</div></div><div class="hero-vs">${score}</div><div class="hero-team"><img class="hero-logo" src="${LOGO(hwId)}" onerror="this.style.display='none'"><div class="hero-abbr" style="color:var(--accent2)">${hwA}</div><div class="hero-name">${hw?.team?.name||''}</div><div class="hero-rec">${hwW}-${hwL}</div><div class="hero-sp">${hwP}</div></div></div><div class="hero-meta"><div class="hero-badge">🕐 ${t}</div>${wb}${wib}${pb}</div></div>`;}
+
+function renderUpset(game){
+  const el=$('upsetEl');if(!el)return;
+  const awPS=S.awayPS,hwPS=S.homePS;
+  if(!awPS&&!hwPS){el.innerHTML='';return;}
+  const awA=game.teams?.away?.team?.abbreviation||'AWY';
+  const hwA=game.teams?.home?.team?.abbreviation||'HME';
+  // SP quality
+  const awERA=parseFloat(awPS?.era)||4.30,hwERA=parseFloat(hwPS?.era)||4.30;
+  const awWHIP=parseFloat(awPS?.whip)||1.35,hwWHIP=parseFloat(hwPS?.whip)||1.35;
+  const awK9=parseFloat(awPS?.strikeoutsPer9Inn)||8.0,hwK9=parseFloat(hwPS?.strikeoutsPer9Inn)||8.0;
+  // Lineup (team OPS)
+  const awOPS=parseFloat(S.awayTeamStats?.ops)||0.720,hwOPS=parseFloat(S.homeTeamStats?.ops)||0.720;
+  // Bullpen
+  const awBPERA=parseFloat(S.awayBP?.era)||4.00,hwBPERA=parseFloat(S.homeBP?.era)||4.00;
+  // Form
+  const awFW=S.awayForm?.filter(g=>g.result==='W').length??2,hwFW=S.homeForm?.filter(g=>g.result==='W').length??2;
+  const awFL=S.awayForm?.length||5,hwFL=S.homeForm?.length||5;
+  // Score each side (higher = better)
+  const awScore=(6-awERA)*2+(2-awWHIP)*3+(awK9/9)+(awOPS-.680)*20+(5-awBPERA)+(awFW/awFL*10);
+  const hwScore=(6-hwERA)*2+(2-hwWHIP)*3+(hwK9/9)+(hwOPS-.680)*20+(5-hwBPERA)+(hwFW/hwFL*10)+1.8/*home field*/;
+  const margin=Math.abs(awScore-hwScore);
+  if(margin<1.0){el.innerHTML='';return;}// too close — no clear favorite
+  // Underdog = lower scoring side
+  const udSide=awScore<hwScore?'away':'home';
+  const favSide=udSide==='away'?'home':'away';
+  const udAbbr=udSide==='away'?awA:hwA,favAbbr=udSide==='away'?hwA:awA;
+  const udERA=udSide==='away'?awERA:hwERA,favERA=udSide==='away'?hwERA:awERA;
+  const udWHIP=udSide==='away'?awWHIP:hwWHIP,favWHIP=udSide==='away'?hwWHIP:awWHIP;
+  const udK9=udSide==='away'?awK9:hwK9,favK9=udSide==='away'?hwK9:awK9;
+  const udOPS=udSide==='away'?awOPS:hwOPS,favOPS=udSide==='away'?hwOPS:awOPS;
+  const udBPERA=udSide==='away'?awBPERA:hwBPERA,favBPERA=udSide==='away'?hwBPERA:awBPERA;
+  const udFW=udSide==='away'?awFW:hwFW,udFL=udSide==='away'?awFL:hwFL;
+  const favFW=udSide==='away'?hwFW:awFW,favFL=udSide==='away'?hwFL:awFL;
+  // Collect upset factors that FAVOR the underdog
+  const reasons=[];let upsetPts=0;
+  // SP ERA advantage
+  if(udERA<favERA-0.75){reasons.push(`💪 ${udAbbr} SP ERA ${udERA.toFixed(2)} vs ${favAbbr} ${favERA.toFixed(2)} — significant edge`);upsetPts+=3;}
+  else if(udERA<favERA-0.30){reasons.push(`📊 ${udAbbr} SP ERA ${udERA.toFixed(2)} vs ${favAbbr} ${favERA.toFixed(2)}`);upsetPts+=2;}
+  // WHIP advantage
+  if(udWHIP<favWHIP-0.15){reasons.push(`🎯 ${udAbbr} SP WHIP ${udWHIP.toFixed(2)} — fewer baserunners allowed`);upsetPts+=2;}
+  else if(udWHIP<favWHIP-0.08){reasons.push(`📈 ${udAbbr} SP WHIP edge (${udWHIP.toFixed(2)} vs ${favWHIP.toFixed(2)})`);upsetPts+=1;}
+  // K/9 advantage
+  if(udK9>favK9+1.5){reasons.push(`🔥 ${udAbbr} SP K/9 ${udK9.toFixed(1)} — high strikeout threat`);upsetPts+=1;}
+  // Lineup OPS
+  if(udOPS>favOPS+0.020){reasons.push(`⚾ ${udAbbr} lineup OPS ${udOPS.toFixed(3)} vs ${favAbbr} ${favOPS.toFixed(3)} — stronger offense`);upsetPts+=2;}
+  else if(udOPS>favOPS+0.008){reasons.push(`📋 ${udAbbr} lineup OPS edge (${udOPS.toFixed(3)} vs ${favOPS.toFixed(3)})`);upsetPts+=1;}
+  // Bullpen
+  if(udBPERA<favBPERA-0.60){reasons.push(`🛡️ ${udAbbr} bullpen ERA ${udBPERA.toFixed(2)} vs ${favAbbr} ${favBPERA.toFixed(2)} — stronger pen`);upsetPts+=2;}
+  else if(udBPERA<favBPERA-0.30){reasons.push(`💼 ${udAbbr} bullpen ERA edge (${udBPERA.toFixed(2)})`);upsetPts+=1;}
+  // Form
+  const udWPct=udFW/udFL,favWPct=favFW/favFL;
+  if(udFW>=4){reasons.push(`🔥 ${udAbbr} hot — ${udFW}-${udFL-udFW} in last ${udFL}`);upsetPts+=2;}
+  else if(udWPct>favWPct+0.2){reasons.push(`📈 ${udAbbr} better recent form (${udFW}-${udFL-udFW} vs ${favFW}-${favFL-favFW})`);upsetPts+=1;}
+  // Park factor boost for underdog's lineup
+  const parkHR=S.parkFactor?.hr||100;
+  if(parkHR>=107&&udOPS>=favOPS){reasons.push(`🏟️ Hitter-friendly park (HR factor ${parkHR}) amplifies ${udAbbr} lineup`);upsetPts+=1;}
+  // Only show alert if underdog has real factors going for them
+  if(upsetPts<2||reasons.length<1){el.innerHTML='';return;}
+  const level=upsetPts>=6?'high':upsetPts>=3?'medium':'low';
+  const levelLabel=level==='high'?'🚨 Strong Upset Alert':level==='medium'?'⚠️ Upset Watch':'👀 Upset Potential';
+  const fillPct=Math.min(100,Math.round(upsetPts/8*100));
+  const factorTags=[awPS&&`SP ERA: ${udERA.toFixed(2)}`,udOPS>.720&&`OPS: ${udOPS.toFixed(3)}`,udBPERA<4&&`Pen ERA: ${udBPERA.toFixed(2)}`].filter(Boolean);
+  el.innerHTML=`<div class="upset-card upset-${level}">
+  <div class="upset-header">
+    <span class="upset-title">${levelLabel}</span>
+    <span class="upset-teams">${udAbbr} over ${favAbbr}</span>
+  </div>
+  <div class="upset-score-bar"><div class="upset-score-fill" style="width:${fillPct}%"></div></div>
+  <div class="upset-reason-list">${reasons.map(r=>`<div class="upset-reason">• ${r}</div>`).join('')}</div>
+  ${factorTags.length?`<div class="upset-factors">${factorTags.map(t=>`<span class="upset-factor">${t}</span>`).join('')}</div>`:''}
+  <div class="upset-note">Statistical edge suggests ${udAbbr} may be undervalued. Always verify with current odds.</div>
+</div>`;}
 
 function renderContext(game){const aw=game.teams?.away,hw=game.teams?.home;const awA=aw?.team?.abbreviation||'?',hwA=hw?.team?.abbreviation||'?';const park=S.parkFactor,weather=S.weather;const awForm=S.awayForm||[],hwForm=S.homeForm||[];const pfPct=park?Math.min(100,Math.max(0,(park.hr-80)/50*100)):50;const pfC=park?.hr>110?'var(--red)':park?.hr>100?'var(--orange)':park?.hr<90?'var(--blue)':'var(--gold)';const parkCard=`<div class="ctx-card"><div class="ctx-title">🏟️ Park Factor</div><div class="ctx-main" style="color:${pfC}">${park?.hr??'—'}</div><div class="ctx-sub">${park?.name||'Unknown'}</div><div class="ctx-detail">${park?.note||''}</div><div class="park-factor"><div class="pf-bar"><div class="pf-fill" style="width:${pfPct}%;background:${pfC}"></div></div><span style="font-size:10px;font-weight:700;color:${pfC}">${park?.hr??''}</span></div></div>`;let wCard='';if(weather){const boost=weatherHRBoost(weather);const bc=boost>5?'var(--red)':boost<-5?'var(--blue)':'var(--gold)';wCard=`<div class="ctx-card"><div class="ctx-title">${weather.indoor?'🏟️ Indoor':'🌤️ Weather'}</div><div class="ctx-main">${weather.indoor?'Dome':weather.temp+'°F'}</div><div class="ctx-sub">${weather.indoor?'Climate controlled':'Precip: '+weather.precip+'%'}</div><div class="ctx-detail">${weather.indoor?'No effect':weather.wind+' mph '+windDirLabel(weather.windDir)}</div><div style="margin-top:5px;font-size:10px;color:${bc}">HR Boost: ${boost>0?'+':''}${boost}%</div></div>`;}function fCard(team,form){const w=form.filter(g=>g.result==='W').length,tot=form.length||1;const rs=form.reduce((a,g)=>a+g.myR,0),ra=form.reduce((a,g)=>a+g.oppR,0);const hot=w/tot>.7?'🔥':w/tot<.4?'🥶':'📈';return`<div class="ctx-card"><div class="ctx-title">${hot} ${team} Last ${form.length}G</div><div class="ctx-main" style="color:${w/tot>.6?'var(--green)':w/tot<.4?'var(--red)':'var(--gold)'}">${w}-${form.length-w}</div><div class="ctx-sub">RS: ${rs} · RA: ${ra} · ${rs-ra>=0?'+':''}${rs-ra}</div><div class="form-dots">${form.slice(0,10).map(g=>`<div class="form-dot ${g.result}">${g.result}</div>`).join('')}</div></div>`;}$('contextEl').innerHTML=`<div class="context-strip">${parkCard}${wCard}${fCard(awA,awForm)}${fCard(hwA,hwForm)}</div>`;}
 
