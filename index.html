@@ -303,6 +303,44 @@ select option{background:#1a2236;color:#fff;}
 .day-hr-row-sub{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .day-hr-row-pct{font-size:15px;font-weight:900;color:var(--red);flex-shrink:0;min-width:36px;text-align:right;}
 .day-hr-section-title{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);font-weight:700;margin:10px 0 4px 2px;}
+.hr-cand-card{background:linear-gradient(135deg,var(--surface),#0d1200);border:2px solid rgba(240,165,0,.4);border-radius:var(--radius);padding:14px 16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden;margin-bottom:4px;}
+.hr-cand-card::before{content:'⚾';position:absolute;right:-10px;top:-10px;font-size:90px;opacity:.04;pointer-events:none;}
+.hr-cand-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 28px rgba(240,165,0,.2);}
+.hr-cand-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+.hr-cand-team-badge{font-size:10px;font-weight:900;background:var(--accent);color:#fff;padding:3px 8px;border-radius:6px;letter-spacing:.6px;flex-shrink:0;align-self:flex-start;margin-top:4px;}
+.hr-cand-hs{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid rgba(240,165,0,.45);flex-shrink:0;background:var(--surface2);}
+.hr-cand-name-block{flex:1;min-width:0;}
+.hr-cand-title-label{font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);font-weight:800;margin-bottom:2px;}
+.hr-cand-name{font-size:19px;font-weight:900;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hr-cand-pos-line{font-size:11px;color:var(--text2);margin-top:2px;}
+.hr-cand-best-look{text-align:center;flex-shrink:0;background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.35);border-radius:8px;padding:6px 10px;min-width:72px;}
+.hr-cand-best-look-label{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#22c55e;}
+.hr-cand-best-look-val{font-size:11px;font-weight:900;color:#22c55e;margin-top:2px;line-height:1.2;}
+.hr-cand-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+.hr-cand-tag{font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.2px;}
+.tag-power{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3);}
+.tag-platoon{background:rgba(34,197,94,.13);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+.tag-noplat{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+.tag-matchup{background:rgba(240,165,0,.13);color:var(--gold);border:1px solid rgba(240,165,0,.28);}
+.tag-park{background:rgba(99,102,241,.13);color:#818cf8;border:1px solid rgba(99,102,241,.28);}
+.tag-neutral{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.hr-cand-stat-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.hr-cand-stat{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:5px 8px;text-align:center;flex:1;min-width:48px;}
+.hr-cand-stat-hi{border-color:rgba(240,165,0,.28);background:rgba(240,165,0,.07);}
+.hr-cand-sv{font-size:14px;font-weight:800;color:var(--gold);}
+.hr-cand-sl{font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+.hr-cand-analysis{font-size:12px;line-height:1.6;color:var(--text1);font-weight:600;margin-bottom:8px;border-left:3px solid rgba(240,165,0,.4);padding-left:10px;}
+.hr-cand-context{font-size:10px;color:var(--text3);}
+.hr-cand-mini{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;cursor:pointer;transition:all .2s;}
+.hr-cand-mini:hover{border-color:rgba(240,165,0,.5);background:var(--surface2);}
+.hr-cand-mini-rank{font-size:14px;width:20px;flex-shrink:0;text-align:center;padding-top:2px;}
+.hr-cand-mini-hs{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(240,165,0,.3);flex-shrink:0;background:var(--surface2);}
+.hr-cand-mini-main{flex:1;min-width:0;}
+.hr-cand-mini-name{font-size:13px;font-weight:800;}
+.hr-cand-mini-tags{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0 4px;}
+.hr-cand-mini-stats{font-size:10px;color:var(--text2);font-weight:600;}
+.hr-cand-mini-sub{font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hr-cand-mini-pct{font-size:16px;font-weight:900;color:var(--red);flex-shrink:0;padding-top:2px;}
 .pitch-rating-row{margin:6px 0 4px;}
 .pitch-rating{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.4px;}
 .rating-great{background:rgba(34,197,94,.18);color:#22c55e;border:1px solid rgba(34,197,94,.35);}
@@ -1198,7 +1236,7 @@ async function loadDayBestHR(){
       const era=parseFloat(sp.era)||4.30;
       const hr9=parseFloat(sp.homeRunsPer9)||1.2;
       const score=(era/4.30)*(hr9/1.2)*park;
-      matchups.push({score,game:g,battingTeamId:battingTeam.team.id,battingTeamAbbr:battingTeam.team.abbreviation,battingTeamName:battingTeam.team.name,sp,spName:oppSP?.fullName||'',oppAbbr:side==='away'?g.teams?.home?.team?.abbreviation:g.teams?.away?.team?.abbreviation});
+      matchups.push({score,game:g,battingTeamId:battingTeam.team.id,battingTeamAbbr:battingTeam.team.abbreviation,battingTeamName:battingTeam.team.name,sp,spName:oppSP?.fullName||'',oppAbbr:side==='away'?g.teams?.home?.team?.abbreviation:g.teams?.away?.team?.abbreviation,spHand:oppSP?.pitchHand?.code||'R'});
     });
   });
 
@@ -1232,7 +1270,15 @@ async function loadDayBestHR(){
         const avg=parseFloat(st.avg)||.240;
         const hr_rate=ab>20?hrN/ab:Math.max(.01,(slg-.28)*.12);
         const hrP=Math.min(30,Math.max(1,hr_rate*(pHR9/1.2)*(slg/.420)*100*parkMult));
-        allPicks.push({...p,hrP,hrN,slg,ops,avg,ab,st,_matchup:m});
+        const pa=parseInt(st.plateAppearances)||ab;
+        const iso=Math.max(0,slg-avg);
+        const xbh=(parseInt(st.doubles)||0)+(parseInt(st.triples)||0)+hrN;
+        const kPct=pa>0?(parseInt(st.strikeOuts)||0)/pa:0.22;
+        const bbPct=pa>0?(parseInt(st.baseOnBalls)||0)/pa:0.09;
+        const batSide=p.person?.batSide?.code||'R';
+        const spHand=m.spHand||'R';
+        const platoon=(spHand==='L'&&batSide==='R')||(spHand==='R'&&batSide==='L');
+        allPicks.push({...p,hrP,hrN,slg,ops,avg,ab,st,pa,iso,xbh,kPct,bbPct,batSide,spHand,platoon,_matchup:m});
       });
   });
 
@@ -1252,64 +1298,125 @@ async function loadDayBestHR(){
   renderDayBestHR();
 }
 
+function buildHRTags(p,m){
+  const tags=[];
+  const bh=p.batSide||'R';
+  tags.push({l:bh==='L'?'LHB':bh==='S'?'SWB':'RHB',c:'tag-neutral'});
+  if(p.platoon)tags.push({l:'PLATOON ✓',c:'tag-platoon'});
+  else tags.push({l:'PLATOON ✗',c:'tag-noplat'});
+  const iso=p.iso||0;
+  if(iso>=0.230)tags.push({l:'ELITE POWER',c:'tag-power'});
+  else if(iso>=0.170)tags.push({l:'POWER BAT',c:'tag-power'});
+  else if(iso>=0.110)tags.push({l:'GAP HITTER',c:'tag-matchup'});
+  const spERA=parseFloat(m.sp.era)||4.30;
+  const spHR9=parseFloat(m.sp.homeRunsPer9)||1.2;
+  if(spERA>5.0||spHR9>1.6)tags.push({l:'SOFT SP',c:'tag-matchup'});
+  else if(spERA<3.0)tags.push({l:'TOUGH SP',c:'tag-noplat'});
+  const parkHR=PARK_FACTORS[m.game.venue?.id]?.hr||100;
+  if(parkHR>=108)tags.push({l:"HITTER'S PARK",c:'tag-park'});
+  else if(parkHR<=88)tags.push({l:"PITCHER'S PARK",c:'tag-neutral'});
+  return tags.map(t=>`<span class="hr-cand-tag ${t.c}">${t.l}</span>`).join('');
+}
+
+function hrBestLook(p,m){
+  const iso=p.iso||0,hrP=p.hrP||0,platoon=p.platoon;
+  if(hrP>=18&&platoon&&iso>=0.200)return'HR + ALT';
+  if(hrP>=16&&iso>=0.200)return'HOME RUN';
+  if(hrP>=12&&platoon)return'HR';
+  if(iso>=0.180&&hrP>=10)return'HR + XBH';
+  return'OVER 0.5 HR';
+}
+
+function generateHRAnalysis(p,m){
+  const lastName=(p.person?.fullName||'Player').split(' ').slice(-1)[0];
+  const spName=m.spName||(m.oppAbbr+' SP');
+  const spERA=parseFloat(m.sp.era)||4.30;
+  const spHR9=parseFloat(m.sp.homeRunsPer9)||1.2;
+  const spHand=m.spHand||'R';
+  const batHand=p.batSide||'R';
+  const iso=p.iso||0;
+  const parkHR=PARK_FACTORS[m.game.venue?.id]?.hr||100;
+  const parkName=PARK_FACTORS[m.game.venue?.id]?.name||'this venue';
+  const lines=[];
+  lines.push(`${lastName} draws a matchup against ${spName} (${spERA.toFixed(2)} ERA), a ${spHand==='L'?'left-handed':'right-handed'} arm.`);
+  if(p.platoon)lines.push(`The platoon split favors ${lastName} — ${batHand==='R'?'right':'left'}-handed bats have historically hit ${spHand==='L'?'lefties':'righties'} at a higher clip.`);
+  if(spHR9>1.5)lines.push(`${spName} has been HR-prone this season at ${spHR9.toFixed(2)} HR/9 — a profile that plays right into ${lastName}'s power upside.`);
+  else if(spERA>4.8)lines.push(`With a ${spERA.toFixed(2)} ERA, ${spName} has struggled to suppress hitters consistently.`);
+  if(iso>=0.230)lines.push(`${lastName} boasts elite raw power — a ${iso.toFixed(3)} ISO puts him among the premier HR threats on today's slate.`);
+  else if(iso>=0.160)lines.push(`${lastName} has shown solid pop this season with a ${iso.toFixed(3)} ISO.`);
+  if(p.xbh>0)lines.push(`He's accumulated ${p.xbh} XBH in ${p.ab} at-bats, reflecting consistent contact quality.`);
+  if(parkHR>=108)lines.push(`${parkName} is one of the most HR-friendly parks in baseball (factor: ${parkHR}), amplifying the ceiling here.`);
+  else if(parkHR<=88)lines.push(`One caveat: ${parkName} suppresses home runs (factor: ${parkHR}), which tempers the ceiling slightly.`);
+  return lines.join(' ');
+}
+
 function renderDayBestHR(){
   const el=$('dayBestHREl');if(!el)return;
   const picks=S.dayBestHR;if(!picks||!picks.length){el.innerHTML='';return;}
 
   // ── #1 featured card ──
-  const p=picks[0];
-  const m=p._matchup;
-  const pid=p.person?.id;
-  const name=p.person?.fullName||'?';
-  const pos=p.position?.abbreviation||'';
+  const p=picks[0],m=p._matchup;
+  const pid=p.person?.id,name=p.person?.fullName||'?',pos=p.position?.abbreviation||'';
   const hrP=Math.round(p.hrP);
   const t=m.game.gameDate?new Date(m.game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
   const parkHR=PARK_FACTORS[m.game.venue?.id]?.hr??'—';
   const spERA=parseFloat(m.sp.era)||4.30;
-  const headshot=`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${pid}/headshot/67/current`;
+  const hs=`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${pid}/headshot/67/current`;
+  const tags=buildHRTags(p,m);
+  const bestLook=hrBestLook(p,m);
+  const analysis=generateHRAnalysis(p,m);
 
-  // ── #2-5 compact rows ──
+  // ── #2-5 mini cards ──
   const medals=['🥈','🥉','4️⃣','5️⃣'];
-  const rowsHTML=picks.slice(1).map((rp,ri)=>{
+  const miniHTML=picks.slice(1).map((rp,ri)=>{
     const rm=rp._matchup;
-    const rpid=rp.person?.id;
-    const rname=rp.person?.fullName||'?';
-    const rpos=rp.position?.abbreviation||'';
+    const rpid=rp.person?.id,rname=rp.person?.fullName||'?',rpos=rp.position?.abbreviation||'';
     const rhrP=Math.round(rp.hrP);
     const rt=rm.game.gameDate?new Date(rm.game.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
     const rhs=`https://img.mlbstatic.com/mlb-photos/image/upload/w_120,q_auto:best/v1/people/${rpid}/headshot/67/current`;
-    return`<div class="day-hr-row" onclick="onGameChange(${rm.game.gamePk})" title="Click to view matchup">
-  <div class="day-hr-row-rank">${medals[ri]}</div>
-  <img class="day-hr-row-hs" src="${rhs}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${rname}">
-  <div class="day-hr-row-main">
-    <div class="day-hr-row-name">${rname}</div>
-    <div class="day-hr-row-sub">${rm.battingTeamAbbr} ${rpos} · vs ${rm.spName||rm.oppAbbr} (ERA ${parseFloat(rm.sp.era).toFixed(2)||'?'}) · ${rt}</div>
+    const rtags=buildHRTags(rp,rm);
+    const rspERA=parseFloat(rm.sp.era)||4.30;
+    return`<div class="hr-cand-mini" onclick="onGameChange(${rm.game.gamePk})">
+  <div class="hr-cand-mini-rank">${medals[ri]}</div>
+  <img class="hr-cand-mini-hs" src="${rhs}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${rname}">
+  <div class="hr-cand-mini-main">
+    <div class="hr-cand-mini-name">${rname} <span style="font-size:10px;color:var(--text3);font-weight:600">${rm.battingTeamAbbr} · ${rpos}</span></div>
+    <div class="hr-cand-mini-tags">${rtags}</div>
+    <div class="hr-cand-mini-stats">ISO ${rp.iso?.toFixed(3)||'.—'} · ${rp.hrN} HR · ${rp.xbh||0} XBH · OPS ${rp.ops?.toFixed(3)||'.—'}</div>
+    <div class="hr-cand-mini-sub">vs ${rm.spName||rm.oppAbbr} (ERA ${rspERA.toFixed(2)}) · Park HR ${PARK_FACTORS[rm.game.venue?.id]?.hr??'—'} · ${rt}</div>
   </div>
-  <div class="day-hr-row-pct">${rhrP}%</div>
+  <div class="hr-cand-mini-pct">${rhrP}%</div>
 </div>`;
   }).join('');
 
   el.innerHTML=`
-<div class="day-hr-card" onclick="onGameChange(${m.game.gamePk})" title="Click to view full matchup">
-  <img class="day-hr-headshot" src="${headshot}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${name}">
-  <div class="day-hr-main">
-    <div class="day-hr-title">🔥 #1 HR Candidate Today</div>
-    <div class="day-hr-player">${name}</div>
-    <div class="day-hr-sub">${m.battingTeamAbbr} ${pos} · vs ${m.spName||m.oppAbbr} SP · ${t}</div>
-    <div class="day-hr-stats">
-      <div class="day-hr-stat"><div class="day-hr-stat-val">${p.hrN}</div><div class="day-hr-stat-lbl">HR</div></div>
-      <div class="day-hr-stat"><div class="day-hr-stat-val">${p.slg.toFixed?p.slg.toFixed(3):p.slg}</div><div class="day-hr-stat-lbl">SLG</div></div>
-      <div class="day-hr-stat"><div class="day-hr-stat-val">${p.ops.toFixed?p.ops.toFixed(3):p.ops}</div><div class="day-hr-stat-lbl">OPS</div></div>
-      <div class="day-hr-stat"><div class="day-hr-stat-val" style="color:${spERA>4.5?'var(--green)':spERA<3.5?'var(--red)':'var(--gold)'}">${spERA.toFixed(2)}</div><div class="day-hr-stat-lbl">Opp ERA</div></div>
-      <div class="day-hr-stat"><div class="day-hr-stat-val">${parkHR}</div><div class="day-hr-stat-lbl">Park HR</div></div>
+<div class="hr-cand-card" onclick="onGameChange(${m.game.gamePk})">
+  <div class="hr-cand-header">
+    <div class="hr-cand-team-badge">${m.battingTeamAbbr}</div>
+    <img class="hr-cand-hs" src="${hs}" onerror="this.src='';this.style.background='var(--surface3)'" alt="${name}">
+    <div class="hr-cand-name-block">
+      <div class="hr-cand-title-label">🔥 #1 HR Candidate Today</div>
+      <div class="hr-cand-name">${name}</div>
+      <div class="hr-cand-pos-line">${p.batSide==='L'?'LHB':p.batSide==='S'?'SWB':'RHB'} · ${pos} · vs ${m.spName||m.oppAbbr}</div>
+    </div>
+    <div class="hr-cand-best-look">
+      <div class="hr-cand-best-look-label">BEST LOOK</div>
+      <div class="hr-cand-best-look-val">${bestLook}</div>
     </div>
   </div>
-  <div>
-    <div class="day-hr-badge">${hrP}%</div>
-    <div class="day-hr-badge-lbl">HR Prob</div>
+  <div class="hr-cand-tags">${tags}</div>
+  <div class="hr-cand-stat-grid">
+    <div class="hr-cand-stat"><div class="hr-cand-sv">${p.hrN}</div><div class="hr-cand-sl">HR</div></div>
+    <div class="hr-cand-stat"><div class="hr-cand-sv">${p.xbh||0}</div><div class="hr-cand-sl">XBH</div></div>
+    <div class="hr-cand-stat hr-cand-stat-hi"><div class="hr-cand-sv">${p.iso?.toFixed(3)||'.—'}</div><div class="hr-cand-sl">ISO</div></div>
+    <div class="hr-cand-stat"><div class="hr-cand-sv">${p.avg?.toFixed?p.avg.toFixed(3):p.avg||'—'}</div><div class="hr-cand-sl">AVG</div></div>
+    <div class="hr-cand-stat"><div class="hr-cand-sv">${p.ops?.toFixed?p.ops.toFixed(3):p.ops||'—'}</div><div class="hr-cand-sl">OPS</div></div>
+    <div class="hr-cand-stat"><div class="hr-cand-sv" style="color:var(--red)">${hrP}%</div><div class="hr-cand-sl">HR PROB</div></div>
   </div>
+  <div class="hr-cand-analysis">${analysis}</div>
+  <div class="hr-cand-context">Opp SP ERA ${spERA.toFixed(2)} · Park HR Factor ${parkHR} · ${t}</div>
 </div>
-${picks.length>1?`<div class="day-hr-section-title">Also worth watching</div><div class="day-hr-list">${rowsHTML}</div>`:''}`;
+${picks.length>1?`<div class="day-hr-section-title">Also worth watching</div><div class="day-hr-list">${miniHTML}</div>`:''}`;
 }
 
 // ── Series Context + Bullpen + Umpire loader ──
