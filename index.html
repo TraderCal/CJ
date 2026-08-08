@@ -426,6 +426,35 @@ select option{background:#1a2236;color:#fff;}
 .nfl-toggle.on{background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.4);color:#22c55e;}
 .nfl-count{font-size:11px;color:var(--text3);margin-left:auto;font-weight:600;white-space:nowrap;}
 .nfl-week-label{font-size:12px;font-weight:800;color:var(--gold);}
+/* ── NFL Player Props ── */
+.np-tabs{display:flex;gap:5px;margin:8px 0 10px;flex-wrap:wrap;}
+.np-tab{font-size:10px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;}
+.np-tab.active{background:rgba(240,165,0,.15);border-color:var(--gold);color:var(--gold);}
+.np-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:8px;}
+.np-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;transition:all .2s;}
+.np-card:hover{border-color:rgba(240,165,0,.4);}
+.np-card.np-elite{border-color:rgba(240,165,0,.45);background:linear-gradient(135deg,var(--surface2),rgba(240,165,0,.04));}
+.np-head{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.np-hs{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--surface3);border:1.5px solid rgba(240,165,0,.3);flex-shrink:0;}
+.np-name-block{flex:1;min-width:0;}
+.np-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.np-sub{font-size:10px;color:var(--text3);}
+.np-td-badge{text-align:center;flex-shrink:0;}
+.np-td-val{font-size:16px;font-weight:900;line-height:1;}
+.np-td-lbl{font-size:7px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.np-props{display:flex;flex-direction:column;gap:3px;}
+.np-prop-row{display:flex;align-items:center;gap:6px;padding:4px 7px;background:rgba(0,0,0,.18);border-radius:6px;}
+.np-prop-lbl{font-size:10px;color:var(--text2);flex:1;font-weight:600;}
+.np-prop-val{font-size:13px;font-weight:900;color:var(--gold);}
+.np-prop-avg{font-size:9px;color:var(--text3);width:52px;text-align:right;}
+.np-lean{font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:2px;}
+.np-lean-up{background:rgba(34,197,94,.16);color:#22c55e;}
+.np-lean-down{background:rgba(239,68,68,.14);color:#f87171;}
+.np-inj{font-size:8px;font-weight:800;color:var(--red);background:rgba(239,68,68,.13);padding:1px 5px;border-radius:6px;margin-left:4px;}
+.np-team-hdr{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin:10px 0 5px 2px;display:flex;align-items:center;gap:6px;}
+.np-team-hdr img{width:18px;height:18px;object-fit:contain;}
+.np-implied{font-size:10px;font-weight:700;color:var(--gold);background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);padding:1px 8px;border-radius:10px;}
+@media(max-width:768px){.np-grid{grid-template-columns:1fr;}}
 @media(max-width:768px){.nfl-grid{grid-template-columns:1fr;}.nfl-odds-grid{grid-template-columns:repeat(2,1fr);}.nfl-controls{gap:8px;}.nfl-controls select{min-width:0;flex:1;}.nfl-ctrl{flex:1;min-width:140px;}.nfl-count{margin-left:0;width:100%;}}
 .pitch-rating-row{margin:6px 0 4px;}
 .pitch-rating{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.4px;}
@@ -663,6 +692,7 @@ select option{background:#1a2236;color:#fff;}
       <div id="nflOUEl"></div>
       <div id="nflWeatherEl"></div>
       <div id="nflUpsetEl"></div>
+      <div id="nflPropsEl"></div>
       <div id="nflMatchupEl"></div>
     </div>
   </div>
@@ -760,7 +790,8 @@ const S={
   sport:'mlb',
   nflGames:[],nflSelId:null,
   nflCalendar:[],nflSeasonType:null,nflWeek:null,nflYear:null,
-  nflUpcomingOnly:false,nflLoaded:false
+  nflUpcomingOnly:false,nflLoaded:false,
+  nflProps:null,nflPropTab:'all'
 };
 
 document.documentElement.setAttribute('data-theme',S.theme);
@@ -2260,8 +2291,9 @@ async function selectNFLGame(id){
     try{
       const[hs,as]=await Promise.all([api(`${NFL}/teams/${homeId}/statistics`),api(`${NFL}/teams/${awayId}/statistics`)]);
       renderNFLMatchup(away,home,as,hs);
-    }catch(e){$('nflMatchupEl').innerHTML='';}
-  } else {$('nflMatchupEl').innerHTML='';}
+      go(async()=>loadNFLProps(away,home,as,hs,odds));
+    }catch(e){$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';}
+  } else {$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';}
 }
 
 function renderNFLHero(g,home,away,venue,status){
@@ -2424,6 +2456,218 @@ function renderNFLMatchup(away,home,awStats,hwStats){
   </div>
   <div class="nfl-matchup-rows">${rowsHTML}</div>
   <div style="font-size:9px;color:var(--text3);margin-top:6px">Green = statistical edge · Stats from current season</div>
+</div>`;}
+
+// ══════════ NFL PLAYER PROPS ══════════
+const NFL_ATH='https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes';
+const SKILL_POS=new Set(['QB','RB','WR','TE','FB']);
+
+// Pull a stat value from ESPN athlete stats payload (most recent season with data)
+function athStat(data,catName,statName){
+  const cat=(data?.categories||[]).find(c=>c.name===catName);
+  if(!cat)return 0;
+  const idx=(cat.names||[]).indexOf(statName);
+  if(idx<0)return 0;
+  const rows=(cat.statistics||[]).filter(r=>r.season?.year);
+  if(!rows.length)return 0;
+  const row=rows[rows.length-1];
+  return parseFloat(String(row.stats?.[idx]??'0').replace(/,/g,''))||0;
+}
+function athSeasonYear(data){
+  for(const c of (data?.categories||[])){
+    const rows=(c.statistics||[]).filter(r=>r.season?.year);
+    if(rows.length)return rows[rows.length-1].season.year;
+  }
+  return null;
+}
+
+// Team stat helper (reuses team statistics payload)
+function tStat(stats,catName,statName){
+  const cats=stats?.results?.categories||stats?.splits?.categories||[];
+  const cat=cats.find(c=>c.name===catName||c.displayName===catName);
+  const st=cat?.stats?.find(s=>s.name===statName||s.displayName===statName);
+  return parseFloat(String(st?.displayValue||'').replace(/,/g,''))||0;
+}
+
+// Parse "ARI -3.5" → {abbr:'ARI', line:-3.5}
+function parseSpread(details){
+  if(!details)return null;
+  const m=String(details).match(/([A-Z]{2,4})\s*([+-]?\d+(?:\.\d+)?)/);
+  if(!m)return null;
+  return{abbr:m[1],line:parseFloat(m[2])};
+}
+
+async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
+  const el=$('nflPropsEl');if(!el)return;
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Building player projections…</div>';
+  const awId=away?.team?.id,hwId=home?.team?.id;
+  const awAbbr=away?.team?.abbreviation||'AWY',hwAbbr=home?.team?.abbreviation||'HME';
+
+  // ── Implied team totals from Vegas ──
+  const ou=parseFloat(odds?.overUnder)||44.0;
+  const sp=parseSpread(odds?.details);
+  let awSpread=0,hwSpread=0;
+  if(sp){
+    if(sp.abbr===hwAbbr){hwSpread=sp.line;awSpread=-sp.line;}
+    else if(sp.abbr===awAbbr){awSpread=sp.line;hwSpread=-sp.line;}
+  }
+  const awImplied=Math.max(10,ou/2-awSpread/2);
+  const hwImplied=Math.max(10,ou/2-hwSpread/2);
+  const LG_AVG_PTS=22.5;
+
+  // ── Rosters ──
+  const[awR,hwR]=await Promise.all([
+    api(`${NFL}/teams/${awId}/roster`),
+    api(`${NFL}/teams/${hwId}/roster`)
+  ]);
+  const pickSkill=data=>{
+    const all=(data?.athletes||[]).flatMap(g=>g.items||[]);
+    return all.filter(p=>SKILL_POS.has(p.position?.abbreviation)).slice(0,16);
+  };
+  const awPlayers=pickSkill(awR),hwPlayers=pickSkill(hwR);
+  if(!awPlayers.length&&!hwPlayers.length){el.innerHTML='';return;}
+
+  // ── Fetch season stats for each skill player ──
+  const fetchAll=players=>Promise.all(players.map(p=>api(`${NFL_ATH}/${p.id}/stats`).catch(()=>null)));
+  const[awStatsArr,hwStatsArr]=await Promise.all([fetchAll(awPlayers),fetchAll(hwPlayers)]);
+
+  // ── Opponent defensive strength multipliers ──
+  const defMult=(oppTeamStats,fallback=1)=>{
+    const ptsAllowed=tStat(oppTeamStats,'scoring','opponentAvgPoints');
+    if(!ptsAllowed)return fallback;
+    return Math.min(1.30,Math.max(0.75,ptsAllowed/LG_AVG_PTS));
+  };
+  const awDefFaced=defMult(hwTeamStats); // away offense faces home defense
+  const hwDefFaced=defMult(awTeamStats);
+
+  const build=(players,statsArr,teamAbbr,teamId,implied,oppDef,oppAbbr,isHome)=>{
+    const paceMult=Math.min(1.35,Math.max(0.70,implied/LG_AVG_PTS));
+    const envMult=paceMult*0.65+oppDef*0.35;
+    const out=[];
+    players.forEach((p,i)=>{
+      const d=statsArr[i];if(!d)return;
+      const pos=p.position?.abbreviation||'';
+      const gp=Math.max(athStat(d,'passing','gamesPlayed'),athStat(d,'rushing','gamesPlayed'),athStat(d,'receiving','gamesPlayed'),athStat(d,'scoring','gamesPlayed'));
+      if(gp<1)return;
+      const season=athSeasonYear(d);
+      // Season totals
+      const passYds=athStat(d,'passing','passingYards'),passTD=athStat(d,'passing','passingTouchdowns');
+      const passAtt=athStat(d,'passing','passingAttempts'),passInt=athStat(d,'passing','interceptions');
+      const rushYds=athStat(d,'rushing','rushingYards'),rushTD=athStat(d,'rushing','rushingTouchdowns');
+      const rushAtt=athStat(d,'rushing','rushingAttempts');
+      const rec=athStat(d,'receiving','receptions'),recYds=athStat(d,'receiving','receivingYards');
+      const recTD=athStat(d,'receiving','receivingTouchdowns'),tgts=athStat(d,'receiving','receivingTargets');
+      // Per-game rates
+      const pg=v=>gp>0?v/gp:0;
+      const rPassYds=pg(passYds),rPassTD=pg(passTD),rRushYds=pg(rushYds),rRushTD=pg(rushTD);
+      const rRec=pg(rec),rRecYds=pg(recYds),rRecTD=pg(recTD),rTgts=pg(tgts),rRushAtt=pg(rushAtt);
+      // Skip non-contributors
+      const usage=rPassYds+rRushYds+rRecYds;
+      if(usage<8)return;
+      // Projections
+      const projPassYds=rPassYds*envMult,projPassTD=rPassTD*paceMult;
+      const projRushYds=rRushYds*envMult,projRecYds=rRecYds*envMult;
+      const projRec=rRec*(envMult*0.5+0.5); // receptions less volatile than yards
+      const projRushTD=rRushTD*paceMult,projRecTD=rRecTD*paceMult;
+      const projAnyTD=projRushTD+projRecTD;
+      const anyTDPct=Math.round(Math.min(85,(1-Math.exp(-projAnyTD))*100));
+      const score=projPassYds*0.045+projRushYds*0.11+projRecYds*0.11+projRec*1.4+projAnyTD*11+projPassTD*4.5;
+      out.push({id:p.id,name:p.displayName||p.fullName||'?',pos,teamAbbr,teamId,oppAbbr,isHome,season,gp,
+        headshot:p.headshot?.href||'',jersey:p.jersey||'',
+        injured:(p.injuries||[]).length>0,injStatus:p.injuries?.[0]?.status||'',
+        rPassYds,rPassTD,rRushYds,rRushTD,rRec,rRecYds,rRecTD,rTgts,rRushAtt,
+        projPassYds,projPassTD,projRushYds,projRecYds,projRec,projAnyTD,anyTDPct,
+        passAtt,passInt,score,envMult,implied});
+    });
+    return out.sort((a,b)=>b.score-a.score);
+  };
+
+  const awProps=build(awPlayers,awStatsArr,awAbbr,awId,awImplied,awDefFaced,hwAbbr,false);
+  const hwProps=build(hwPlayers,hwStatsArr,hwAbbr,hwId,hwImplied,hwDefFaced,awAbbr,true);
+  if(!awProps.length&&!hwProps.length){el.innerHTML='<div class="prob-card"><div class="prob-title">🎯 Player Props</div><div style="font-size:11px;color:var(--text3);margin-top:6px">No season stats available yet for these rosters.</div></div>';return;}
+
+  S.nflProps={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,awId,hwId,awImplied,hwImplied,ou,awSpread,hwSpread};
+  renderNFLProps();
+}
+
+function setNFLPropTab(t){S.nflPropTab=t;renderNFLProps();}
+
+function propCard(p){
+  const rows=[];
+  const mk=(lbl,val,avg,unit='')=>{
+    const lean=avg>0?(val>avg*1.04?'up':val<avg*0.96?'down':null):null;
+    rows.push(`<div class="np-prop-row">
+  <span class="np-prop-lbl">${lbl}</span>
+  <span class="np-prop-val">${val}${unit}</span>
+  ${lean?`<span class="np-lean np-lean-${lean}">${lean==='up'?'▲':'▼'}</span>`:''}
+  <span class="np-prop-avg">avg ${avg}</span>
+</div>`);
+  };
+  if(p.pos==='QB'){
+    if(p.projPassYds>20)mk('Pass Yds',p.projPassYds.toFixed(1),p.rPassYds.toFixed(1));
+    if(p.projPassTD>0.15)mk('Pass TDs',p.projPassTD.toFixed(2),p.rPassTD.toFixed(2));
+    if(p.projRushYds>4)mk('Rush Yds',p.projRushYds.toFixed(1),p.rRushYds.toFixed(1));
+  } else {
+    if(p.projRushYds>4)mk('Rush Yds',p.projRushYds.toFixed(1),p.rRushYds.toFixed(1));
+    if(p.projRec>0.4)mk('Receptions',p.projRec.toFixed(1),p.rRec.toFixed(1));
+    if(p.projRecYds>4)mk('Rec Yds',p.projRecYds.toFixed(1),p.rRecYds.toFixed(1));
+  }
+  const tdColor=p.anyTDPct>=55?'#22c55e':p.anyTDPct>=35?'var(--gold)':'var(--text2)';
+  const elite=p.score>=22;
+  return`<div class="np-card${elite?' np-elite':''}">
+  <div class="np-head">
+    ${p.headshot?`<img class="np-hs" src="${p.headshot}" onerror="this.style.visibility='hidden'" alt="">`:'<div class="np-hs"></div>'}
+    <div class="np-name-block">
+      <div class="np-name">${p.name}${p.injured?`<span class="np-inj">${p.injStatus||'INJ'}</span>`:''}</div>
+      <div class="np-sub">${p.pos}${p.jersey?` #${p.jersey}`:''} · ${p.teamAbbr} vs ${p.oppAbbr} · ${p.gp}G${p.season?` '${String(p.season).slice(2)}`:''}</div>
+    </div>
+    <div class="np-td-badge">
+      <div class="np-td-val" style="color:${tdColor}">${p.anyTDPct}%</div>
+      <div class="np-td-lbl">Any TD</div>
+    </div>
+  </div>
+  <div class="np-props">${rows.join('')||'<div style="font-size:10px;color:var(--text3);padding:3px">Limited usage data</div>'}</div>
+</div>`;
+}
+
+function renderNFLProps(){
+  const el=$('nflPropsEl');if(!el)return;
+  const d=S.nflProps;if(!d){el.innerHTML='';return;}
+  const tab=S.nflPropTab;
+  const all=[...d.away,...d.home];
+  let list,grouped=false;
+  if(tab==='all'){list=[...all].sort((a,b)=>b.score-a.score).slice(0,10);}
+  else if(tab==='away'){list=d.away;grouped=true;}
+  else if(tab==='home'){list=d.home;grouped=true;}
+  else if(tab==='td'){list=[...all].sort((a,b)=>b.anyTDPct-a.anyTDPct).slice(0,10);}
+  else if(tab==='pass'){list=all.filter(p=>p.projPassYds>20).sort((a,b)=>b.projPassYds-a.projPassYds);}
+  else if(tab==='rush'){list=all.filter(p=>p.projRushYds>10).sort((a,b)=>b.projRushYds-a.projRushYds).slice(0,10);}
+  else if(tab==='rec'){list=all.filter(p=>p.projRecYds>10).sort((a,b)=>b.projRecYds-a.projRecYds).slice(0,10);}
+  else list=all.slice(0,10);
+
+  const tabs=[['all','⭐ Top Plays'],['td','🏈 Anytime TD'],['pass','🎯 Passing'],['rush','🏃 Rushing'],['rec','🙌 Receiving'],['away',d.awAbbr],['home',d.hwAbbr]]
+    .map(([k,l])=>`<button class="np-tab${tab===k?' active':''}" onclick="setNFLPropTab('${k}')">${l}</button>`).join('');
+
+  let body;
+  if(grouped){
+    const teamId=tab==='away'?d.awId:d.hwId;
+    const abbr=tab==='away'?d.awAbbr:d.hwAbbr;
+    const imp=tab==='away'?d.awImplied:d.hwImplied;
+    body=`<div class="np-team-hdr"><img src="${NFL_LOGO(abbr)}" onerror="this.style.display='none'">${abbr} Projections<span class="np-implied">Implied ${imp.toFixed(1)} pts</span></div>
+    <div class="np-grid">${list.map(propCard).join('')}</div>`;
+  } else {
+    body=`<div class="np-grid">${list.map(propCard).join('')}</div>`;
+  }
+  if(!list.length)body='<div style="font-size:11px;color:var(--text3);padding:8px 0">No players match this filter</div>';
+
+  el.innerHTML=`<div class="props-card">
+  <div class="prob-title">🎯 Player Prop Projections</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:2px">
+    Projections adjust season per-game rates for Vegas implied totals (${d.awAbbr} ${d.awImplied.toFixed(1)} · ${d.hwAbbr} ${d.hwImplied.toFixed(1)}) and opponent defense
+  </div>
+  <div class="np-tabs">${tabs}</div>
+  ${body}
+  <div style="font-size:9px;color:var(--text3);margin-top:8px">▲/▼ = projection above/below the player's season average · Any TD via Poisson on projected TDs · Verify injury status before betting</div>
 </div>`;}
 </script>
 </body>
