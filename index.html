@@ -367,6 +367,53 @@ select option{background:#1a2236;color:#fff;}
 .ts-filters{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
 .ts-filter-btn{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;}
 .ts-filter-btn.active{background:rgba(240,165,0,.15);border-color:var(--gold);color:var(--gold);}
+/* ── Sport Switcher ── */
+.sport-tabs{display:flex;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:3px;width:fit-content;margin:0 auto 14px;}
+.sport-tab{padding:7px 20px;font-size:13px;font-weight:800;border:none;background:none;color:var(--text2);cursor:pointer;border-radius:10px;transition:all .2s;letter-spacing:.4px;}
+.sport-tab.active{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35);}
+.hidden{display:none!important;}
+/* ── NFL Game Cards ── */
+.nfl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-bottom:12px;}
+.nfl-game-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;transition:all .2s;position:relative;}
+.nfl-game-card:hover,.nfl-game-card.active{border-color:rgba(255,140,0,.5);background:var(--surface2);}
+.nfl-game-card.live-game{border-color:var(--green);}
+.nfl-card-teams{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px;}
+.nfl-team{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;}
+.nfl-team-logo{width:44px;height:44px;object-fit:contain;}
+.nfl-team-abbr{font-size:14px;font-weight:900;}
+.nfl-team-rec{font-size:10px;color:var(--text3);}
+.nfl-score-center{text-align:center;flex:0 0 76px;}
+.nfl-vs{font-size:11px;color:var(--text3);font-weight:600;}
+.nfl-time{font-size:12px;font-weight:700;}
+.nfl-live-score{font-size:22px;font-weight:900;color:var(--gold);}
+.nfl-final-score{font-size:20px;font-weight:900;color:var(--text2);}
+.nfl-card-chips{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;}
+.nfl-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--border);color:var(--text2);}
+.nfl-live-badge{position:absolute;top:8px;right:10px;font-size:9px;color:var(--green);font-weight:800;text-transform:uppercase;letter-spacing:.8px;}
+/* ── NFL Detail ── */
+.nfl-detail{display:none;}
+.nfl-detail.on{display:block;}
+.nfl-hero{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:8px;}
+.nfl-hero-teams{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.nfl-hero-team{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;}
+.nfl-hero-logo{width:62px;height:62px;object-fit:contain;}
+.nfl-hero-abbr{font-size:24px;font-weight:900;}
+.nfl-hero-name{font-size:10px;color:var(--text2);text-align:center;line-height:1.3;}
+.nfl-hero-rec{font-size:13px;font-weight:700;}
+.nfl-hero-vs{font-size:30px;font-weight:900;color:var(--gold);text-align:center;flex:0 0 60px;}
+.nfl-hero-meta{display:flex;flex-wrap:wrap;gap:5px;}
+.nfl-meta-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+.nfl-odds-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;}
+.nfl-odds-item{text-align:center;background:rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 4px;}
+.nfl-odds-val{font-size:18px;font-weight:900;color:var(--gold);}
+.nfl-odds-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.nfl-matchup-rows{display:flex;flex-direction:column;gap:0;}
+.nfl-stat-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(42,58,85,.3);}
+.nfl-stat-row:last-child{border-bottom:none;}
+.nfl-stat-val-l{font-size:12px;font-weight:800;width:48px;text-align:right;flex-shrink:0;}
+.nfl-stat-lbl{font-size:10px;color:var(--text3);flex:1;text-align:center;}
+.nfl-stat-val-r{font-size:12px;font-weight:800;width:48px;text-align:left;flex-shrink:0;}
+@media(max-width:768px){.nfl-grid{grid-template-columns:1fr;}.nfl-odds-grid{grid-template-columns:repeat(2,1fr);}}
 .pitch-rating-row{margin:6px 0 4px;}
 .pitch-rating{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.4px;}
 .rating-great{background:rgba(34,197,94,.18);color:#22c55e;border:1px solid rgba(34,197,94,.35);}
@@ -562,24 +609,48 @@ select option{background:#1a2236;color:#fff;}
 
 <main class="main" id="main">
   <div id="statusEl"></div>
-  <div id="dayBestHREl"></div>
-  <div id="totalsScreenerEl"></div>
-  <div class="game-grid" id="gameGrid"></div>
-  <div class="detail" id="detail">
-    <div id="heroEl"></div>
-    <div id="upsetEl"></div>
-    <div id="seriesEl"></div>
-    <div id="umpEl"></div>
-    <div id="contextEl"></div>
-    <div id="probEl"></div>
-    <div id="advancedEl"></div>
-    <div id="ouEl"></div>
-    <div class="pitch-grid" id="pitchEl"></div>
-    <div id="bullpenEl"></div>
-    <div id="propsEl"></div>
-    <div id="matchupEl"></div>
-    <div id="oddsEl"></div>
-    <div id="evEl"></div>
+  <!-- Sport tabs -->
+  <div class="sport-tabs">
+    <button class="sport-tab active" data-sport="mlb" onclick="switchSport('mlb')">⚾ MLB</button>
+    <button class="sport-tab" data-sport="nfl" onclick="switchSport('nfl')">🏈 NFL</button>
+  </div>
+
+  <!-- MLB Content -->
+  <div id="mlbContent">
+    <div id="dayBestHREl"></div>
+    <div id="totalsScreenerEl"></div>
+    <div class="game-grid" id="gameGrid"></div>
+    <div class="detail" id="detail">
+      <div id="heroEl"></div>
+      <div id="upsetEl"></div>
+      <div id="seriesEl"></div>
+      <div id="umpEl"></div>
+      <div id="contextEl"></div>
+      <div id="probEl"></div>
+      <div id="advancedEl"></div>
+      <div id="ouEl"></div>
+      <div class="pitch-grid" id="pitchEl"></div>
+      <div id="bullpenEl"></div>
+      <div id="propsEl"></div>
+      <div id="matchupEl"></div>
+      <div id="oddsEl"></div>
+      <div id="evEl"></div>
+    </div>
+  </div>
+
+  <!-- NFL Content -->
+  <div id="nflContent" class="hidden">
+    <div id="nflStatusEl"></div>
+    <div class="nfl-grid" id="nflGrid"></div>
+    <div class="nfl-detail" id="nflDetail">
+      <div id="nflHeroEl"></div>
+      <div id="nflOddsEl"></div>
+      <div id="nflWPEl"></div>
+      <div id="nflOUEl"></div>
+      <div id="nflWeatherEl"></div>
+      <div id="nflUpsetEl"></div>
+      <div id="nflMatchupEl"></div>
+    </div>
   </div>
 </main>
 </div>
@@ -671,7 +742,9 @@ const S={
   parlayOpen:false,
   awayFormRaw:null,homeFormRaw:null,
   plateUmpire:null,
-  dayBestHR:null
+  dayBestHR:null,
+  sport:'mlb',
+  nflGames:[],nflSelId:null
 };
 
 document.documentElement.setAttribute('data-theme',S.theme);
@@ -2013,6 +2086,246 @@ function renderParlay(){
   </div>
 </div>`;
 }
+
+// ── NFL ──
+const NFL='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
+const NFL_LOGO=abbr=>`https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
+
+function switchSport(sport){
+  S.sport=sport;
+  $('mlbContent').classList.toggle('hidden',sport!=='mlb');
+  $('nflContent').classList.toggle('hidden',sport!=='nfl');
+  document.querySelectorAll('.sport-tab').forEach(b=>b.classList.toggle('active',b.dataset.sport===sport));
+  if(sport==='nfl'&&!S.nflGames.length)loadNFLGames();
+}
+
+async function loadNFLGames(){
+  const el=$('nflGrid');if(!el)return;
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading NFL schedule…</div>';
+  const data=await api(`${NFL}/scoreboard`);
+  S.nflGames=data?.events||[];
+  if(!S.nflGames.length){el.innerHTML='<div class="no-games"><div style="font-size:48px">🏈</div><div>No NFL games this week</div></div>';return;}
+  renderNFLGrid();
+}
+
+function renderNFLGrid(){
+  const el=$('nflGrid');if(!el)return;
+  el.innerHTML=S.nflGames.map(g=>{
+    const comp=g.competitions?.[0];
+    const home=comp?.competitors?.find(c=>c.homeAway==='home');
+    const away=comp?.competitors?.find(c=>c.homeAway==='away');
+    const status=comp?.status?.type;
+    const odds=comp?.odds?.[0];
+    const isLive=status?.state==='in';
+    const isFinal=status?.state==='post';
+    const awAbbr=away?.team?.abbreviation||'?',hwAbbr=home?.team?.abbreviation||'?';
+    const awRec=away?.records?.[0]?.summary||'',hwRec=home?.records?.[0]?.summary||'';
+    const t=g.date?new Date(g.date).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'TBD';
+    const scoreOrTime=isLive
+      ?`<div class="nfl-live-score">${away?.score||0} - ${home?.score||0}</div><div class="nfl-vs" style="color:var(--green);font-size:10px">${status?.shortDetail||'LIVE'}</div>`
+      :isFinal
+      ?`<div class="nfl-final-score">${away?.score||0} - ${home?.score||0}</div><div class="nfl-vs">FINAL</div>`
+      :`<div class="nfl-time">${t}</div><div class="nfl-vs">@</div>`;
+    const spread=odds?.details||'',ou=odds?.overUnder?`O/U ${odds.overUnder}`:'';
+    return`<div class="nfl-game-card${g.id===S.nflSelId?' active':''}${isLive?' live-game':''}" onclick="selectNFLGame('${g.id}')">
+  ${isLive?`<div class="nfl-live-badge">🔴 LIVE</div>`:''}
+  <div class="nfl-card-teams">
+    <div class="nfl-team"><img class="nfl-team-logo" src="${NFL_LOGO(awAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${awAbbr}</div><div class="nfl-team-rec">${awRec}</div></div>
+    <div class="nfl-score-center">${scoreOrTime}</div>
+    <div class="nfl-team"><img class="nfl-team-logo" src="${NFL_LOGO(hwAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${hwAbbr}</div><div class="nfl-team-rec">${hwRec}</div></div>
+  </div>
+  <div class="nfl-card-chips">
+    ${spread?`<span class="nfl-chip">📊 ${spread}</span>`:''}
+    ${ou?`<span class="nfl-chip">📈 ${ou}</span>`:''}
+    ${comp?.venue?.indoor?`<span class="nfl-chip">🏟️ Dome</span>`:''}
+    ${comp?.venue?.fullName?`<span class="nfl-chip" style="color:var(--text3)">${comp.venue.city||comp.venue.fullName}</span>`:''}
+  </div>
+</div>`;
+  }).join('');
+}
+
+async function selectNFLGame(id){
+  S.nflSelId=id;
+  const g=S.nflGames.find(x=>x.id===id);if(!g)return;
+  document.querySelectorAll('.nfl-game-card').forEach(c=>c.classList.toggle('active',c.getAttribute('onclick')?.includes(`'${id}'`)));
+  $('nflDetail').classList.add('on');
+  const comp=g.competitions?.[0];
+  const home=comp?.competitors?.find(c=>c.homeAway==='home');
+  const away=comp?.competitors?.find(c=>c.homeAway==='away');
+  const odds=comp?.odds?.[0];
+  const weather=comp?.weather;
+  const venue=comp?.venue;
+  const status=comp?.status?.type;
+  $('nflMatchupEl').innerHTML='';
+  renderNFLHero(g,home,away,venue,status);
+  renderNFLOdds(home,away,odds);
+  renderNFLWinProb(home,away,odds);
+  renderNFLOU(odds,weather,venue);
+  renderNFLWeather(weather,venue);
+  renderNFLUpset(home,away,odds);
+  const homeId=home?.team?.id,awayId=away?.team?.id;
+  if(homeId&&awayId){
+    const[hs,as]=await Promise.all([api(`${NFL}/teams/${homeId}/statistics`),api(`${NFL}/teams/${awayId}/statistics`)]);
+    renderNFLMatchup(away,home,as,hs);
+  }
+}
+
+function renderNFLHero(g,home,away,venue,status){
+  const awA=away?.team?.abbreviation||'?',hwA=home?.team?.abbreviation||'?';
+  const awName=away?.team?.displayName||'',hwName=home?.team?.displayName||'';
+  const awRec=away?.records?.[0]?.summary||'',hwRec=home?.records?.[0]?.summary||'';
+  const isLive=status?.state==='in',isFinal=status?.state==='post';
+  const t=g.date?new Date(g.date).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'TBD';
+  const vs=(isLive||isFinal)
+    ?`<div style="font-size:26px;font-weight:900;color:var(--gold)">${away?.score||0} - ${home?.score||0}</div>${isFinal?`<div style="font-size:11px;color:var(--text3)">FINAL</div>`:isLive?`<div style="font-size:11px;color:var(--green)">${status?.shortDetail||'LIVE'}</div>`:''}`
+    :'@';
+  $('nflHeroEl').innerHTML=`<div class="nfl-hero">
+  <div class="nfl-hero-teams">
+    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${NFL_LOGO(awA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent)">${awA}</div><div class="nfl-hero-name">${awName}</div><div class="nfl-hero-rec">${awRec}</div></div>
+    <div class="nfl-hero-vs">${vs}</div>
+    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${NFL_LOGO(hwA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent2)">${hwA}</div><div class="nfl-hero-name">${hwName}</div><div class="nfl-hero-rec">${hwRec}</div></div>
+  </div>
+  <div class="nfl-hero-meta">
+    <span class="nfl-meta-badge">🕐 ${t}</span>
+    ${venue?`<span class="nfl-meta-badge">🏟️ ${venue.fullName||''}${venue.city?`, ${venue.city}`:''}${venue.indoor?' · Dome':''}</span>`:''}
+  </div>
+</div>`;}
+
+function renderNFLOdds(home,away,odds){
+  if(!odds){$('nflOddsEl').innerHTML='';return;}
+  const awML=odds.awayTeamOdds?.moneyLine,hwML=odds.homeTeamOdds?.moneyLine;
+  const fmt=ml=>ml!=null?(ml>0?`+${ml}`:`${ml}`):'—';
+  const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
+  const favA=odds.homeTeamOdds?.favorite?hwA:awA;
+  $('nflOddsEl').innerHTML=`<div class="prob-card"><div class="prob-title">💰 Vegas Lines${favA?` · ${favA} favored`:''}</div>
+  <div class="nfl-odds-grid">
+    <div class="nfl-odds-item"><div class="nfl-odds-val">${odds.details||'—'}</div><div class="nfl-odds-lbl">Spread</div></div>
+    <div class="nfl-odds-item"><div class="nfl-odds-val">${odds.overUnder||'—'}</div><div class="nfl-odds-lbl">Over/Under</div></div>
+    <div class="nfl-odds-item"><div class="nfl-odds-val" style="color:var(--accent)">${fmt(awML)}</div><div class="nfl-odds-lbl">${awA} ML</div></div>
+    <div class="nfl-odds-item"><div class="nfl-odds-val" style="color:var(--accent2)">${fmt(hwML)}</div><div class="nfl-odds-lbl">${hwA} ML</div></div>
+  </div></div>`;}
+
+function renderNFLWinProb(home,away,odds){
+  const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
+  let homeWP=52,src='home field edge';
+  if(odds?.details){
+    const sp=parseFloat(odds.details);
+    if(!isNaN(sp)){homeWP=Math.round(Math.min(90,Math.max(10,50+(-sp)*2.4)));src='Vegas spread';}
+  } else if(odds?.homeTeamOdds?.moneyLine){
+    const ml=odds.homeTeamOdds.moneyLine;
+    const imp=ml>0?(100/(ml+100)):((-ml)/((-ml)+100));
+    homeWP=Math.round(Math.min(90,Math.max(10,imp*100)));src='moneyline';
+  } else {
+    const awRec=away?.records?.[0]?.summary||'0-0',hwRec=home?.records?.[0]?.summary||'0-0';
+    const[awW,awL]=awRec.split('-').map(Number),[hwW,hwL]=hwRec.split('-').map(Number);
+    const awWP=(awW||0)/Math.max(1,(awW||0)+(awL||0)),hwWP=(hwW||0)/Math.max(1,(hwW||0)+(hwL||0));
+    homeWP=Math.round(Math.min(82,Math.max(18,(hwWP/(awWP+hwWP||1))*100+3)));src='team records';
+  }
+  const awayWP=100-homeWP;
+  $('nflWPEl').innerHTML=`<div class="prob-card"><div class="prob-title">⚡ Win Probability <span style="font-size:10px;color:var(--text3);font-weight:400">via ${src}</span></div>
+  <div class="prob-bar-wrap"><div class="prob-away" style="width:${awayWP}%;background:linear-gradient(90deg,#dc2626,#b91c1c)">${awayWP}%</div><div class="prob-home" style="width:${homeWP}%">${homeWP}%</div></div>
+  <div class="prob-labels"><span style="color:var(--accent)">${awA} ${awayWP}%</span><span style="color:var(--accent2)">${hwA} ${homeWP}%</span></div>
+  </div>`;}
+
+function renderNFLOU(odds,weather,venue){
+  const ou=odds?.overUnder;
+  const indoor=venue?.indoor;
+  const factors=[],ts_cls=d=>`ts-factor ts-factor-${d}`;
+  let score=0;
+  if(ou){if(ou>=50){score+=2;factors.push({l:`High total (${ou})`,d:'over'});}else if(ou<=38){score-=2;factors.push({l:`Low total set (${ou})`,d:'under'});}}
+  if(!indoor&&weather){
+    const tmp=weather.temperature||70,wnd=weather.wind?.speed||0;
+    if(tmp>82){score+=2;factors.push({l:`${tmp}°F — warm weather boosts scoring`,d:'over'});}
+    else if(tmp<38){score-=3;factors.push({l:`${tmp}°F — cold suppresses scoring/kicking`,d:'under'});}
+    else if(tmp<52){score-=1;factors.push({l:`${tmp}°F — cool weather`,d:'under'});}
+    if(wnd>20){score-=4;factors.push({l:`Strong wind ${wnd}mph — hurts passing game`,d:'under'});}
+    else if(wnd>15){score-=2;factors.push({l:`Wind ${wnd}mph — affects kicking range`,d:'under'});}
+    else if(wnd>10){score-=1;factors.push({l:`Moderate wind ${wnd}mph`,d:'under'});}
+    const precip=weather.precipitation||0;
+    if(precip>70){score-=2;factors.push({l:`Rain/snow likely — run-heavy game`,d:'under'});}
+  } else if(indoor){factors.push({l:'Indoor dome — weather neutral',d:'neutral'});}
+  let lean,cls,icon;
+  if(score>=3){lean='Lean OVER';cls='lean-over';icon='⬆️';}
+  else if(score<=-4){lean='Strong UNDER';cls='lean-under-strong';icon='📉';}
+  else if(score<=-2){lean='Lean UNDER';cls='lean-under';icon='⬇️';}
+  else{lean='Toss-Up';cls='lean-neutral';icon='⚖️';}
+  $('nflOUEl').innerHTML=`<div class="prob-card"><div class="prob-title">📊 O/U Analysis${ou?` · Total ${ou}`:''}</div>
+  <div class="ts-factors" style="margin:8px 0">${factors.map(f=>`<span class="${ts_cls(f.d)}">${f.l}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">Insufficient data</span>'}</div>
+  <div class="ts-lean ${cls}" style="display:inline-block;margin-top:4px">${icon} ${lean}</div>
+  </div>`;}
+
+function renderNFLWeather(weather,venue){
+  if(venue?.indoor){$('nflWeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">🏟️ Venue</div><div style="font-size:13px;color:var(--text2);margin-top:6px">Indoor dome — no weather impact</div></div>`;return;}
+  if(!weather){$('nflWeatherEl').innerHTML='';return;}
+  const tmp=weather.temperature,wnd=weather.wind?.speed,dir=weather.wind?.direction?.displayValue||'',desc=weather.displayValue||'';
+  const icon=tmp>80?'☀️':tmp<35?'🥶':wnd>15?'💨':'🌤️';
+  $('nflWeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">${icon} Game Weather</div>
+  <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+    ${tmp!=null?`<div class="day-hr-stat"><div class="day-hr-stat-val">${tmp}°F</div><div class="day-hr-stat-lbl">Temp</div></div>`:''}
+    ${wnd!=null?`<div class="day-hr-stat"><div class="day-hr-stat-val">${wnd}mph ${dir}</div><div class="day-hr-stat-lbl">Wind</div></div>`:''}
+    ${desc?`<div class="day-hr-stat"><div class="day-hr-stat-val" style="font-size:11px">${desc}</div><div class="day-hr-stat-lbl">Conditions</div></div>`:''}
+  </div></div>`;}
+
+function renderNFLUpset(home,away,odds){
+  const el=$('nflUpsetEl');if(!el)return;
+  if(!odds?.details){el.innerHTML='';return;}
+  const sp=parseFloat(odds.details);if(isNaN(sp)||Math.abs(sp)<4){el.innerHTML='';return;}
+  const homeIsFav=sp<0,margin=Math.abs(sp);
+  const udAbbr=homeIsFav?away?.team?.abbreviation:home?.team?.abbreviation;
+  const favAbbr=homeIsFav?home?.team?.abbreviation:away?.team?.abbreviation;
+  const udRec=(homeIsFav?away:home)?.records?.[0]?.summary||'?';
+  const favRec=(homeIsFav?home:away)?.records?.[0]?.summary||'?';
+  const[udW,udL]=udRec.split('-').map(Number),[favW,favL]=favRec.split('-').map(Number);
+  const udWP=(udW||0)/Math.max(1,(udW||0)+(udL||0)),favWP=(favW||0)/Math.max(1,(favW||0)+(favL||0));
+  const reasons=[];let pts=0;
+  if(udWP>favWP+0.1){reasons.push(`📈 ${udAbbr} has a better record (${udRec} vs ${favRec})`);pts+=3;}
+  else if(udWP>0.55){reasons.push(`✅ ${udAbbr} is a winning team (${udRec})`);pts+=2;}
+  if(favWP<0.40){reasons.push(`⚠️ ${favAbbr} struggling this season (${favRec})`);pts+=2;}
+  if(!homeIsFav){reasons.push(`🏠 ${udAbbr} has home field advantage`);pts+=1;}
+  if(margin>=7&&margin<10){reasons.push(`📊 ${margin}-point spread is significant but not insurmountable`);pts+=1;}
+  if(pts<2||!reasons.length){el.innerHTML='';return;}
+  const level=pts>=4?'high':'medium';
+  el.innerHTML=`<div class="upset-card upset-${level}">
+  <div class="upset-header"><span class="upset-title">${level==='high'?'🚨 Strong Upset Alert':'⚠️ Upset Watch'}</span><span class="upset-teams">${udAbbr} over ${favAbbr}</span></div>
+  <div class="upset-reason-list">${reasons.map(r=>`<div class="upset-reason">• ${r}</div>`).join('')}</div>
+  <div class="upset-note">Check current injury reports and line movement before betting.</div>
+</div>`;}
+
+function renderNFLMatchup(away,home,awStats,hwStats){
+  const el=$('nflMatchupEl');if(!el)return;
+  const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
+  function gv(stats,catName,statName){
+    const cats=stats?.results?.categories||stats?.splits?.categories||[];
+    const cat=cats.find(c=>c.name===catName||c.displayName===catName);
+    const st=cat?.stats?.find(s=>s.name===statName||s.displayName===statName);
+    return parseFloat((st?.displayValue||'').replace(/,/g,''))||0;
+  }
+  const rows=[
+    {l:'Points/Game',   aw:gv(awStats,'scoring','avgPoints'),   hw:gv(hwStats,'scoring','avgPoints'),   hi:'over'},
+    {l:'Pass Yds/G',    aw:gv(awStats,'passing','yardsPerGame'), hw:gv(hwStats,'passing','yardsPerGame'), hi:'over'},
+    {l:'Rush Yds/G',    aw:gv(awStats,'rushing','yardsPerGame'), hw:gv(hwStats,'rushing','yardsPerGame'), hi:'over'},
+    {l:'Pts Allowed/G', aw:gv(awStats,'scoring','opponentAvgPoints'), hw:gv(hwStats,'scoring','opponentAvgPoints'), hi:'under'},
+    {l:'Sacks',         aw:gv(awStats,'defensive','sacks'),      hw:gv(hwStats,'defensive','sacks'),      hi:'over'},
+    {l:'TO Diff',       aw:gv(awStats,'turnovers','turnoverRatio'), hw:gv(hwStats,'turnovers','turnoverRatio'), hi:'over'},
+  ].filter(r=>r.aw>0||r.hw>0);
+  if(!rows.length){el.innerHTML='';return;}
+  const rowsHTML=rows.map(r=>{
+    const awBetter=r.hi==='over'?r.aw>r.hw:r.aw<r.hw;
+    const hwBetter=r.hi==='over'?r.hw>r.aw:r.hw<r.aw;
+    return`<div class="nfl-stat-row">
+  <div class="nfl-stat-val-l" style="color:${awBetter?'var(--green)':'var(--accent)'}">${r.aw%1===0?r.aw:r.aw.toFixed(1)}</div>
+  <div class="nfl-stat-lbl">${r.l}</div>
+  <div class="nfl-stat-val-r" style="color:${hwBetter?'var(--green)':'var(--accent2)'}">${r.hw%1===0?r.hw:r.hw.toFixed(1)}</div>
+</div>`;
+  }).join('');
+  el.innerHTML=`<div class="nfl-matchup-card prob-card">
+  <div class="prob-title">⚔️ Team Stats Matchup</div>
+  <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;text-transform:uppercase;margin:8px 0 2px">
+    <span style="color:var(--accent)">${awA} (Away)</span><span style="color:var(--accent2)">${hwA} (Home)</span>
+  </div>
+  <div class="nfl-matchup-rows">${rowsHTML}</div>
+  <div style="font-size:9px;color:var(--text3);margin-top:6px">Green = statistical edge · Stats from current season</div>
+</div>`;}
 </script>
 </body>
 </html>
