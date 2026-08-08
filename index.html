@@ -455,6 +455,44 @@ select option{background:#1a2236;color:#fff;}
 .np-team-hdr img{width:18px;height:18px;object-fit:contain;}
 .np-implied{font-size:10px;font-weight:700;color:var(--gold);background:rgba(240,165,0,.1);border:1px solid rgba(240,165,0,.25);padding:1px 8px;border-radius:10px;}
 @media(max-width:768px){.np-grid{grid-template-columns:1fr;}}
+/* ── Coverage Matchup ── */
+.cv-scheme-bar{display:flex;gap:8px;margin:8px 0 10px;flex-wrap:wrap;}
+.cv-scheme{flex:1;min-width:190px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 11px;}
+.cv-scheme-hdr{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cv-scheme-hdr img{width:20px;height:20px;object-fit:contain;}
+.cv-scheme-team{font-size:12px;font-weight:900;}
+.cv-scheme-style{font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;margin-left:auto;}
+.cv-mz-bar{height:16px;border-radius:5px;overflow:hidden;display:flex;margin-bottom:5px;}
+.cv-mz-man{background:linear-gradient(90deg,#dc2626,#ef4444);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;}
+.cv-mz-zone{background:linear-gradient(90deg,#0284c7,#38bdf8);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;}
+.cv-scheme-meta{display:flex;gap:5px;flex-wrap:wrap;}
+.cv-meta-pill{font-size:9px;font-weight:700;padding:1px 7px;border-radius:9px;background:rgba(0,0,0,.22);border:1px solid var(--border);color:var(--text2);}
+.cv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:8px;}
+.cv-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;transition:all .2s;position:relative;overflow:hidden;}
+.cv-card:hover{border-color:rgba(240,165,0,.4);}
+.cv-head{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.cv-hs{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--surface3);border:1.5px solid rgba(240,165,0,.3);flex-shrink:0;}
+.cv-nb{flex:1;min-width:0;}
+.cv-name{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cv-sub{font-size:10px;color:var(--text3);}
+.cv-grade{width:46px;height:46px;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:2px solid;}
+.cv-grade-l{font-size:19px;font-weight:900;line-height:1;}
+.cv-grade-s{font-size:7px;font-weight:700;text-transform:uppercase;opacity:.75;margin-top:1px;}
+.grade-a{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.5);color:#22c55e;}
+.grade-b{background:rgba(132,204,22,.13);border-color:rgba(132,204,22,.45);color:#a3e635;}
+.grade-c{background:rgba(240,165,0,.13);border-color:rgba(240,165,0,.42);color:var(--gold);}
+.grade-d{background:rgba(249,115,22,.13);border-color:rgba(249,115,22,.42);color:#fb923c;}
+.grade-f{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.45);color:#f87171;}
+.cv-arch{display:inline-block;font-size:9px;font-weight:800;padding:2px 8px;border-radius:10px;background:rgba(99,102,241,.14);border:1px solid rgba(99,102,241,.3);color:#818cf8;margin-bottom:6px;letter-spacing:.3px;}
+.cv-splits{display:flex;gap:5px;margin-bottom:6px;}
+.cv-split{flex:1;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 6px;text-align:center;}
+.cv-split-v{font-size:12px;font-weight:800;}
+.cv-split-l{font-size:7px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.cv-notes{display:flex;flex-direction:column;gap:2px;}
+.cv-note{font-size:10px;color:var(--text2);line-height:1.45;}
+.cv-note-pos{color:#22c55e;}
+.cv-note-neg{color:#f87171;}
+@media(max-width:768px){.cv-grid{grid-template-columns:1fr;}.cv-scheme{min-width:0;}}
 @media(max-width:768px){.nfl-grid{grid-template-columns:1fr;}.nfl-odds-grid{grid-template-columns:repeat(2,1fr);}.nfl-controls{gap:8px;}.nfl-controls select{min-width:0;flex:1;}.nfl-ctrl{flex:1;min-width:140px;}.nfl-count{margin-left:0;width:100%;}}
 .pitch-rating-row{margin:6px 0 4px;}
 .pitch-rating{display:inline-block;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:.4px;}
@@ -693,6 +731,7 @@ select option{background:#1a2236;color:#fff;}
       <div id="nflWeatherEl"></div>
       <div id="nflUpsetEl"></div>
       <div id="nflPropsEl"></div>
+      <div id="nflCoverageEl"></div>
       <div id="nflMatchupEl"></div>
     </div>
   </div>
@@ -2280,6 +2319,7 @@ async function selectNFLGame(id){
   const venue=comp?.venue;
   const status=comp?.status?.type;
   $('nflMatchupEl').innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading team stats…</div>';
+  $('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';S.nflProps=null;
   renderNFLHero(g,home,away,venue,status);
   renderNFLOdds(home,away,odds);
   renderNFLWinProb(home,away,odds);
@@ -2292,8 +2332,8 @@ async function selectNFLGame(id){
       const[hs,as]=await Promise.all([api(`${NFL}/teams/${homeId}/statistics`),api(`${NFL}/teams/${awayId}/statistics`)]);
       renderNFLMatchup(away,home,as,hs);
       go(async()=>loadNFLProps(away,home,as,hs,odds));
-    }catch(e){$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';}
-  } else {$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';}
+    }catch(e){$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';}
+  } else {$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';}
 }
 
 function renderNFLHero(g,home,away,venue,status){
@@ -2458,6 +2498,171 @@ function renderNFLMatchup(away,home,awStats,hwStats){
   <div style="font-size:9px;color:var(--text3);margin-top:6px">Green = statistical edge · Stats from current season</div>
 </div>`;}
 
+// ══════════ NFL COVERAGE SCHEMES ══════════
+// Reference baseline of defensive scheme tendencies (man/zone/blitz/press rates).
+// ESPN's public API does not expose charted coverage data — these are directional
+// baselines from recent seasons and should be re-verified as coordinators change.
+const COVERAGE={
+  KC :{man:42,blitz:32,press:34,style:'Man/Blitz',note:'Spagnuolo — aggressive man, heavy pressure'},
+  BAL:{man:40,blitz:28,press:33,style:'Man/Disguise',note:'Heavy disguise, mixes Cover 1 and quarters'},
+  NE :{man:41,blitz:24,press:36,style:'Man-Heavy',note:'Press man, physical at the line'},
+  MIN:{man:39,blitz:38,press:31,style:'Blitz-Heavy',note:'Flores — extreme pressure, man behind it'},
+  DEN:{man:40,blitz:31,press:35,style:'Man/Press',note:'Press man with aggressive corners'},
+  DAL:{man:38,blitz:26,press:30,style:'Man/Mix',note:'Man principles with zone changeups'},
+  TB :{man:37,blitz:34,press:29,style:'Blitz/Man',note:'Bowles — creative pressure, Cover 1 shells'},
+  LAC:{man:38,blitz:27,press:32,style:'Man-Leaning',note:'Minter — man coverage, physical corners'},
+  WSH:{man:37,blitz:29,press:30,style:'Man/Mix',note:'Whitt — man-leaning, situational blitz'},
+  DET:{man:36,blitz:30,press:31,style:'Man/Aggressive',note:'Attacking front, man on the back end'},
+  HOU:{man:36,blitz:28,press:30,style:'Man/Mix',note:'Balanced with man tendencies'},
+  NO :{man:36,blitz:25,press:31,style:'Man/Mix',note:'Historically man-leaning secondary'},
+  LV :{man:35,blitz:33,press:29,style:'Blitz-Heavy',note:'Graham — pressure-first scheme'},
+  CLE:{man:34,blitz:22,press:28,style:'Mixed',note:'Schwartz — 4-man rush, Cover 1/3 mix'},
+  ARI:{man:34,blitz:29,press:27,style:'Mixed',note:'Balanced coverage distribution'},
+  ATL:{man:33,blitz:28,press:27,style:'Mixed',note:'Mixes man and zone by situation'},
+  NYG:{man:33,blitz:27,press:28,style:'Mixed',note:'Balanced scheme, situational pressure'},
+  CAR:{man:33,blitz:26,press:27,style:'Mixed',note:'Evero — quarters base with man wrinkles'},
+  PIT:{man:32,blitz:30,press:29,style:'Mixed/Blitz',note:'Austin — simulated pressure, zone behind'},
+  MIA:{man:32,blitz:27,press:28,style:'Mixed',note:'Balanced approach'},
+  TEN:{man:32,blitz:26,press:27,style:'Mixed',note:'Situational coverage mix'},
+  JAX:{man:31,blitz:27,press:26,style:'Mixed',note:'Balanced coverage rates'},
+  NYJ:{man:31,blitz:22,press:29,style:'Zone/Cover 3',note:'Cover 3 base with press corners'},
+  SEA:{man:31,blitz:26,press:28,style:'Zone/Disguise',note:'Disguised shells, Cover 3 roots'},
+  LAR:{man:30,blitz:24,press:25,style:'Zone-Leaning',note:'Zone base, wins with front four'},
+  GB :{man:30,blitz:26,press:26,style:'Zone/Mix',note:'Hafley — zone-heavy, four-man rush'},
+  CIN:{man:29,blitz:23,press:25,style:'Zone-Heavy',note:'Zone shells, bend-dont-break'},
+  SF :{man:28,blitz:21,press:24,style:'Cover 3 Zone',note:'Wide-9 front, Cover 3 zone behind'},
+  CHI:{man:28,blitz:24,press:25,style:'Zone-Heavy',note:'Zone base, two-high looks'},
+  IND:{man:27,blitz:22,press:24,style:'Cover 2/3 Zone',note:'Tampa 2 roots, deep zone shells'},
+  BUF:{man:27,blitz:23,press:24,style:'Zone-Heavy',note:'McDermott — Cover 2/3, limits explosives'},
+  PHI:{man:26,blitz:19,press:23,style:'Zone/Fangio',note:'Fangio — two-high zone, lowest blitz rate'}
+};
+function cvScheme(abbr){return COVERAGE[abbr]||{man:33,blitz:26,press:28,style:'Mixed',note:'League-average baseline'};}
+
+// Derive receiver archetype from box-score profile
+function cvArchetype(p){
+  const ypr=p.rRec>0?p.rRecYds/p.rRec:0;
+  const catchRate=p.rTgts>0?p.rRec/p.rTgts:0;
+  const tgtVol=p.rTgts;
+  if(p.pos==='RB'){
+    if(tgtVol>=3.5)return{key:'passRB',label:'Receiving Back',ypr,catchRate,tgtVol};
+    return{key:'rushRB',label:'Ground Back',ypr,catchRate,tgtVol};
+  }
+  if(p.pos==='TE'){
+    if(ypr>=13)return{key:'seamTE',label:'Seam Stretcher',ypr,catchRate,tgtVol};
+    return{key:'chainTE',label:'Chain-Mover TE',ypr,catchRate,tgtVol};
+  }
+  if(ypr>=15.5)return{key:'deep',label:'Deep Threat',ypr,catchRate,tgtVol};
+  if(ypr>=12.5&&tgtVol>=6)return{key:'alpha',label:'Alpha X Receiver',ypr,catchRate,tgtVol};
+  if(catchRate>=0.70&&ypr<11.5)return{key:'slot',label:'Slot / Possession',ypr,catchRate,tgtVol};
+  if(ypr<11.5&&tgtVol>=5)return{key:'volume',label:'Volume Underneath',ypr,catchRate,tgtVol};
+  return{key:'balanced',label:'Balanced Route Runner',ypr,catchRate,tgtVol};
+}
+
+// Grade a player's matchup vs the opposing scheme
+function cvGrade(p,arch,scheme,oppPassDefRating){
+  let score=50;const notes=[];
+  const manLean=scheme.man-33;   // vs league baseline
+  const zoneLean=-manLean;
+  const blitzLean=scheme.blitz-26;
+  const pressLean=scheme.press-28;
+
+  // Archetype vs man/zone
+  if(arch.key==='deep'||arch.key==='alpha'||arch.key==='seamTE'){
+    if(manLean>3){score+=manLean*1.5;notes.push({t:`Man-heavy defense (${scheme.man}%) leaves single coverage for a vertical threat`,d:'pos'});}
+    else if(zoneLean>3){score-=zoneLean*1.2;notes.push({t:`Zone shells (${100-scheme.man}%) put safety help over the top`,d:'neg'});}
+  } else if(arch.key==='slot'||arch.key==='volume'||arch.key==='chainTE'||arch.key==='passRB'){
+    if(zoneLean>3){score+=zoneLean*1.4;notes.push({t:`Zone-heavy (${100-scheme.man}%) creates soft spots underneath to settle into`,d:'pos'});}
+    else if(manLean>3){score-=manLean*1.1;notes.push({t:`Man coverage (${scheme.man}%) travels with him and limits free releases`,d:'neg'});}
+  }
+  // Blitz interaction
+  if(blitzLean>4){
+    if(arch.key==='slot'||arch.key==='volume'||arch.key==='passRB'||arch.key==='chainTE'){score+=blitzLean*0.9;notes.push({t:`High blitz rate (${scheme.blitz}%) forces quick game — hot-route target`,d:'pos'});}
+    else{score-=blitzLean*0.7;notes.push({t:`Blitz rate ${scheme.blitz}% shortens the clock on deep developing routes`,d:'neg'});}
+  } else if(blitzLean<-4&&(arch.key==='deep'||arch.key==='alpha')){
+    score-=3;notes.push({t:`Low blitz rate (${scheme.blitz}%) means more coverage bodies downfield`,d:'neg'});
+  }
+  // Press interaction
+  if(pressLean>4){
+    if(arch.catchRate>=0.68){score+=2;notes.push({t:`Press-heavy (${scheme.press}%) but his ${Math.round(arch.catchRate*100)}% catch rate shows reliable hands vs contact`,d:'pos'});}
+    else{score-=pressLean*0.8;notes.push({t:`Press coverage (${scheme.press}%) can disrupt timing at the line`,d:'neg'});}
+  }
+  // Volume floor — heavy target share raises the floor regardless of scheme
+  if(arch.tgtVol>=8){score+=7;notes.push({t:`Elite target volume (${arch.tgtVol.toFixed(1)}/gm) keeps the floor high in any scheme`,d:'pos'});}
+  else if(arch.tgtVol>=6){score+=4;}
+  else if(arch.tgtVol<3&&p.pos!=='RB'){score-=6;notes.push({t:`Low target share (${arch.tgtVol.toFixed(1)}/gm) caps the ceiling`,d:'neg'});}
+  // Opponent pass defense quality
+  if(oppPassDefRating>0){
+    const d=oppPassDefRating-225; // league avg pass yds allowed/gm
+    if(d>25){score+=6;notes.push({t:`Opponent allows ${Math.round(oppPassDefRating)} pass yds/gm — a leaky secondary`,d:'pos'});}
+    else if(d<-25){score-=6;notes.push({t:`Opponent allows only ${Math.round(oppPassDefRating)} pass yds/gm — stingy pass defense`,d:'neg'});}
+  }
+  score=Math.max(5,Math.min(98,score));
+  let letter,cls;
+  if(score>=88){letter='A+';cls='grade-a';}
+  else if(score>=80){letter='A';cls='grade-a';}
+  else if(score>=73){letter='B+';cls='grade-b';}
+  else if(score>=66){letter='B';cls='grade-b';}
+  else if(score>=58){letter='C+';cls='grade-c';}
+  else if(score>=50){letter='C';cls='grade-c';}
+  else if(score>=42){letter='D+';cls='grade-d';}
+  else if(score>=34){letter='D';cls='grade-d';}
+  else{letter='F';cls='grade-f';}
+  return{score:Math.round(score),letter,cls,notes:notes.slice(0,3)};
+}
+
+function renderNFLCoverage(){
+  const el=$('nflCoverageEl');if(!el)return;
+  const d=S.nflProps;if(!d){el.innerHTML='';return;}
+  const awScheme=cvScheme(d.awAbbr),hwScheme=cvScheme(d.hwAbbr);
+  // away receivers face HOME defense scheme; home receivers face AWAY defense
+  const rec=p=>p.rTgts>=1.5||p.pos==='RB';
+  const awRec=d.away.filter(rec),hwRec=d.home.filter(rec);
+  const cards=[];
+  const mk=(players,oppScheme,oppPassYds)=>players.forEach(p=>{
+    const arch=cvArchetype(p);
+    if(arch.key==='rushRB')return; // no coverage matchup for pure ground backs
+    const g=cvGrade(p,arch,oppScheme,oppPassYds);
+    cards.push({p,arch,g,oppScheme});
+  });
+  mk(awRec,hwScheme,d.hwPassYdsAllowed);
+  mk(hwRec,awScheme,d.awPassYdsAllowed);
+  if(!cards.length){el.innerHTML='';return;}
+  cards.sort((a,b)=>b.g.score-a.g.score);
+
+  const schemeCard=(abbr,sc)=>`<div class="cv-scheme">
+  <div class="cv-scheme-hdr"><img src="${NFL_LOGO(abbr)}" onerror="this.style.display='none'"><span class="cv-scheme-team">${abbr} Defense</span><span class="cv-scheme-style">${sc.style}</span></div>
+  <div class="cv-mz-bar"><div class="cv-mz-man" style="width:${sc.man}%">MAN ${sc.man}%</div><div class="cv-mz-zone" style="width:${100-sc.man}%">ZONE ${100-sc.man}%</div></div>
+  <div class="cv-scheme-meta"><span class="cv-meta-pill">🔥 Blitz ${sc.blitz}%</span><span class="cv-meta-pill">✊ Press ${sc.press}%</span></div>
+  <div style="font-size:9px;color:var(--text3);margin-top:4px">${sc.note}</div>
+</div>`;
+
+  const cardHTML=cards.slice(0,10).map(({p,arch,g,oppScheme})=>`<div class="cv-card">
+  <div class="cv-head">
+    ${p.headshot?`<img class="cv-hs" src="${p.headshot}" onerror="this.style.visibility='hidden'" alt="">`:'<div class="cv-hs"></div>'}
+    <div class="cv-nb">
+      <div class="cv-name">${p.name}${p.injured?`<span class="np-inj">${p.injStatus||'INJ'}</span>`:''}</div>
+      <div class="cv-sub">${p.pos} · ${p.teamAbbr} vs ${p.oppAbbr} ${oppScheme.style}</div>
+    </div>
+    <div class="cv-grade ${g.cls}"><div class="cv-grade-l">${g.letter}</div><div class="cv-grade-s">Match</div></div>
+  </div>
+  <div class="cv-arch">${arch.label}</div>
+  <div class="cv-splits">
+    <div class="cv-split"><div class="cv-split-v">${arch.ypr.toFixed(1)}</div><div class="cv-split-l">Yds/Rec</div></div>
+    <div class="cv-split"><div class="cv-split-v">${Math.round(arch.catchRate*100)}%</div><div class="cv-split-l">Catch Rt</div></div>
+    <div class="cv-split"><div class="cv-split-v">${arch.tgtVol.toFixed(1)}</div><div class="cv-split-l">Tgts/G</div></div>
+    <div class="cv-split"><div class="cv-split-v" style="color:var(--gold)">${p.projRecYds.toFixed(0)}</div><div class="cv-split-l">Proj Yds</div></div>
+  </div>
+  <div class="cv-notes">${g.notes.map(n=>`<div class="cv-note cv-note-${n.d==='pos'?'pos':'neg'}">${n.d==='pos'?'✓':'✕'} ${n.t}</div>`).join('')||'<div class="cv-note">Neutral scheme matchup</div>'}</div>
+</div>`).join('');
+
+  el.innerHTML=`<div class="props-card">
+  <div class="prob-title">🛡️ Coverage Matchup Grades</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Player archetype vs the coverage scheme they'll face</div>
+  <div class="cv-scheme-bar">${schemeCard(d.awAbbr,awScheme)}${schemeCard(d.hwAbbr,hwScheme)}</div>
+  <div class="cv-grid">${cardHTML}</div>
+  <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5">Grades weigh route archetype (derived from yards/reception, catch rate, target volume) against the opponent's man/zone/blitz/press tendencies and pass-yards allowed. Scheme rates are a reference baseline from recent seasons — coordinators and personnel change, so verify current tendencies before betting.</div>
+</div>`;}
+
 // ══════════ NFL PLAYER PROPS ══════════
 const NFL_ATH='https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes';
 const SKILL_POS=new Set(['QB','RB','WR','TE','FB']);
@@ -2586,8 +2791,12 @@ async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
   const hwProps=build(hwPlayers,hwStatsArr,hwAbbr,hwId,hwImplied,hwDefFaced,awAbbr,true);
   if(!awProps.length&&!hwProps.length){el.innerHTML='<div class="prob-card"><div class="prob-title">🎯 Player Props</div><div style="font-size:11px;color:var(--text3);margin-top:6px">No season stats available yet for these rosters.</div></div>';return;}
 
-  S.nflProps={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,awId,hwId,awImplied,hwImplied,ou,awSpread,hwSpread};
+  // Pass yards allowed per game (for coverage grading)
+  const passYdsAllowed=ts=>tStat(ts,'passing','opponentYardsPerGame')||tStat(ts,'passing','netYardsPerGame')||0;
+  S.nflProps={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,awId,hwId,awImplied,hwImplied,ou,awSpread,hwSpread,
+    awPassYdsAllowed:passYdsAllowed(awTeamStats),hwPassYdsAllowed:passYdsAllowed(hwTeamStats)};
   renderNFLProps();
+  go(()=>renderNFLCoverage());
 }
 
 function setNFLPropTab(t){S.nflPropTab=t;renderNFLProps();}
