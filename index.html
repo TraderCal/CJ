@@ -643,7 +643,7 @@ select option{background:#1a2236;color:#fff;}
   <div class="header-right" id="headerRight">
     <div class="ctrl"><span class="ctrl-lbl">Date</span><input type="date" id="datePicker" onchange="onDateChange(this.value)"></div>
     <div class="ctrl"><span class="ctrl-lbl">Game</span><select id="gameSelect" onchange="onGameChange(this.value)"><option value="">— Select Game —</option></select></div>
-    <button class="btn btn-primary" onclick="loadGames()">🔄 Refresh</button>
+    <button class="btn btn-primary" onclick="refreshCurrent()">🔄 Refresh</button>
     <button class="icon-btn" onclick="toggleTheme()" id="themeBtn">🌙</button>
     <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
       <div class="live-dot" id="liveDot" style="display:none"></div>
@@ -655,7 +655,7 @@ select option{background:#1a2236;color:#fff;}
 <div class="filter-drawer" id="filterDrawer">
   <div class="ctrl"><span class="ctrl-lbl">Date</span><input type="date" id="datePickerM" onchange="onDateChange(this.value)"></div>
   <div class="ctrl"><span class="ctrl-lbl">Game</span><select id="gameSelectM" onchange="onGameChange(this.value)"><option value="">— Select Game —</option></select></div>
-  <div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="loadGames()">🔄 Refresh</button><button class="icon-btn" onclick="toggleTheme()" id="themeBtnM">🌙</button></div>
+  <div style="display:flex;gap:8px"><button class="btn btn-primary" onclick="refreshCurrent()">🔄 Refresh</button><button class="icon-btn" onclick="toggleTheme()" id="themeBtnM">🌙</button></div>
 </div>
 
 <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
@@ -855,7 +855,12 @@ window.addEventListener('load',()=>{
 });
 
 function onDateChange(val){S.date=val;$('datePicker').value=val;$('datePickerM').value=val;S.selPk=null;S.selGame=null;$('detail').classList.remove('on');$('shareFab').classList.remove('visible');stopLiveRefresh();loadGames();}
-function onGameChange(pk){$('gameSelect').value=pk;$('gameSelectM').value=pk;if(pk)selectGame(parseInt(pk));}
+function onGameChange(pk){
+  $('gameSelect').value=pk;$('gameSelectM').value=pk;
+  if(!pk)return;
+  if(S.sport==='nfl')selectNFLGame(String(pk));
+  else selectGame(parseInt(pk));
+}
 
 // ── Favorites ──
 function toggleFav(abbr,id,e){
@@ -1177,6 +1182,7 @@ function renderGameGrid(){
 }
 
 function populateSelects(){
+  if(S.sport==='nfl'){populateNFLSelects();return;}
   const opts=['<option value="">— Select Game —</option>',...S.games.map(g=>{
     const aw=g.teams?.away?.team?.abbreviation||'?',hw=g.teams?.home?.team?.abbreviation||'?';
     const t=g.gameDate?new Date(g.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'TBD';
@@ -1184,6 +1190,23 @@ function populateSelects(){
   })].join('');
   $('gameSelect').innerHTML=opts;$('gameSelectM').innerHTML=opts;
   if(S.selPk){$('gameSelect').value=S.selPk;$('gameSelectM').value=S.selPk;}
+}
+
+// Header dropdown shows NFL games while the NFL tab is active
+function populateNFLSelects(){
+  const games=[...S.nflGames].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const opts=['<option value="">— Select NFL Game —</option>',...games.map(g=>{
+    const comp=g.competitions?.[0];
+    const home=comp?.competitors?.find(c=>c.homeAway==='home');
+    const away=comp?.competitors?.find(c=>c.homeAway==='away');
+    const aw=away?.team?.abbreviation||'?',hw=home?.team?.abbreviation||'?';
+    const st=comp?.status?.type?.state;
+    const dt=g.date?new Date(g.date):null;
+    const when=st==='post'?'Final':st==='in'?'LIVE':dt?`${dt.toLocaleDateString([],{weekday:'short'})} ${dt.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`:'TBD';
+    return`<option value="${g.id}">${aw} @ ${hw} — ${when}</option>`;
+  })].join('');
+  $('gameSelect').innerHTML=opts;$('gameSelectM').innerHTML=opts;
+  if(S.nflSelId){$('gameSelect').value=S.nflSelId;$('gameSelectM').value=S.nflSelId;}
 }
 
 // ── Select Game ──
@@ -2177,12 +2200,19 @@ function renderParlay(){
 const NFL='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 const NFL_LOGO=abbr=>`https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
 
+function refreshCurrent(){if(S.sport==='nfl')loadNFLWeek();else loadGames();}
+
 function switchSport(sport){
   S.sport=sport;
   $('mlbContent').classList.toggle('hidden',sport!=='mlb');
   $('nflContent').classList.toggle('hidden',sport!=='nfl');
   document.querySelectorAll('.sport-tab').forEach(b=>b.classList.toggle('active',b.dataset.sport===sport));
-  if(sport==='nfl'&&!S.nflLoaded)initNFL();
+  // Date picker is MLB-only — NFL uses its own week selector
+  document.querySelectorAll('#datePicker,#datePickerM').forEach(d=>{
+    const ctrl=d.closest('.ctrl');if(ctrl)ctrl.style.display=sport==='nfl'?'none':'';
+  });
+  if(sport==='nfl'&&!S.nflLoaded){initNFL();return;}
+  populateSelects();
 }
 
 // Load calendar + current week on first NFL visit
@@ -2199,6 +2229,7 @@ async function initNFL(){
   S.nflLoaded=true;
   renderNFLControls();
   renderNFLGrid();
+  populateSelects();
 }
 
 async function loadNFLWeek(){
@@ -2209,6 +2240,7 @@ async function loadNFLWeek(){
   S.nflGames=data?.events||[];
   renderNFLControls();
   renderNFLGrid();
+  populateSelects();
 }
 
 function onNFLSeasonType(val){
@@ -2309,6 +2341,7 @@ async function selectNFLGame(id){
   S.nflSelId=id;
   const g=S.nflGames.find(x=>x.id===id);if(!g)return;
   document.querySelectorAll('.nfl-game-card').forEach(c=>c.classList.toggle('active',c.getAttribute('onclick')?.includes(`'${id}'`)));
+  $('gameSelect').value=id;$('gameSelectM').value=id;
   $('nflDetail').classList.add('on');
   $('nflDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
   const comp=g.competitions?.[0];
