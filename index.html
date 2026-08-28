@@ -425,6 +425,7 @@ select option{background:#1a2236;color:#fff;}
 .nfl-toggle{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;user-select:none;padding:6px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;transition:all .2s;}
 .nfl-toggle.on{background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.4);color:#22c55e;}
 .nfl-count{font-size:11px;color:var(--text3);margin-left:auto;font-weight:600;white-space:nowrap;}
+.fb-rank{font-size:10px;font-weight:900;color:var(--gold);margin-right:3px;vertical-align:super;}
 .nfl-week-label{font-size:12px;font-weight:800;color:var(--gold);}
 /* ── NFL Player Props ── */
 .np-tabs{display:flex;gap:5px;margin:8px 0 10px;flex-wrap:wrap;}
@@ -693,6 +694,7 @@ select option{background:#1a2236;color:#fff;}
   <div class="sport-tabs">
     <button class="sport-tab active" data-sport="mlb" onclick="switchSport('mlb')">⚾ MLB</button>
     <button class="sport-tab" data-sport="nfl" onclick="switchSport('nfl')">🏈 NFL</button>
+    <button class="sport-tab" data-sport="cfb" onclick="switchSport('cfb')">🎓 CFB</button>
   </div>
 
   <!-- MLB Content -->
@@ -733,6 +735,22 @@ select option{background:#1a2236;color:#fff;}
       <div id="nflPropsEl"></div>
       <div id="nflCoverageEl"></div>
       <div id="nflMatchupEl"></div>
+    </div>
+  </div>
+  <div id="cfbContent" class="hidden">
+    <div id="cfbControlsEl"></div>
+    <div id="cfbStatusEl"></div>
+    <div class="nfl-grid" id="cfbGrid"></div>
+    <div class="nfl-detail" id="cfbDetail">
+      <div id="cfbHeroEl"></div>
+      <div id="cfbOddsEl"></div>
+      <div id="cfbWPEl"></div>
+      <div id="cfbOUEl"></div>
+      <div id="cfbWeatherEl"></div>
+      <div id="cfbUpsetEl"></div>
+      <div id="cfbPropsEl"></div>
+      <div id="cfbCoverageEl"></div>
+      <div id="cfbMatchupEl"></div>
     </div>
   </div>
 </main>
@@ -827,10 +845,10 @@ const S={
   plateUmpire:null,
   dayBestHR:null,
   sport:'mlb',
-  nflGames:[],nflSelId:null,
-  nflCalendar:[],nflSeasonType:null,nflWeek:null,nflYear:null,
-  nflUpcomingOnly:false,nflLoaded:false,
-  nflProps:null,nflPropTab:'all'
+  fb:{
+    nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all'},
+    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all'}
+  }
 };
 
 document.documentElement.setAttribute('data-theme',S.theme);
@@ -858,7 +876,7 @@ function onDateChange(val){S.date=val;$('datePicker').value=val;$('datePickerM')
 function onGameChange(pk){
   $('gameSelect').value=pk;$('gameSelectM').value=pk;
   if(!pk)return;
-  if(S.sport==='nfl')selectNFLGame(String(pk));
+  if(isFB(S.sport))selectFBGame(String(pk));
   else selectGame(parseInt(pk));
 }
 
@@ -1182,7 +1200,7 @@ function renderGameGrid(){
 }
 
 function populateSelects(){
-  if(S.sport==='nfl'){populateNFLSelects();return;}
+  if(isFB(S.sport)){populateFBSelects();return;}
   const opts=['<option value="">— Select Game —</option>',...S.games.map(g=>{
     const aw=g.teams?.away?.team?.abbreviation||'?',hw=g.teams?.home?.team?.abbreviation||'?';
     const t=g.gameDate?new Date(g.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'TBD';
@@ -1192,10 +1210,12 @@ function populateSelects(){
   if(S.selPk){$('gameSelect').value=S.selPk;$('gameSelectM').value=S.selPk;}
 }
 
-// Header dropdown shows NFL games while the NFL tab is active
-function populateNFLSelects(){
-  const games=[...S.nflGames].sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const opts=['<option value="">— Select NFL Game —</option>',...games.map(g=>{
+// Header dropdown follows the active football tab
+function populateFBSelects(){
+  let src=FBS().games||[];
+  if(FBC.conf&&FBS().conf&&FBS().conf!=='all')src=src.filter(g=>(g.competitions?.[0]?.competitors||[]).some(c=>String(c.team?.conferenceId)===String(FBS().conf)));
+  const games=[...src].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const opts=['<option value="">— Select ${FBC.label} Game —</option>',...games.map(g=>{
     const comp=g.competitions?.[0];
     const home=comp?.competitors?.find(c=>c.homeAway==='home');
     const away=comp?.competitors?.find(c=>c.homeAway==='away');
@@ -1206,7 +1226,7 @@ function populateNFLSelects(){
     return`<option value="${g.id}">${aw} @ ${hw} — ${when}</option>`;
   })].join('');
   $('gameSelect').innerHTML=opts;$('gameSelectM').innerHTML=opts;
-  if(S.nflSelId){$('gameSelect').value=S.nflSelId;$('gameSelectM').value=S.nflSelId;}
+  if(FBS().selId){$('gameSelect').value=FBS().selId;$('gameSelectM').value=FBS().selId;}
 }
 
 // ── Select Game ──
@@ -2195,102 +2215,126 @@ function renderParlay(){
   </div>
 </div>`;
 }
+// ══════════ FOOTBALL ENGINE (NFL + College) ══════════
+const FB={
+  nfl:{key:'nfl',p:'nfl',label:'NFL',emptyIcon:'🏈',
+    api:'https://site.api.espn.com/apis/site/v2/sports/football/nfl',
+    ath:'https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes',
+    groups:'',coverage:true,ranks:false,conf:false},
+  cfb:{key:'cfb',p:'cfb',label:'College Football',emptyIcon:'🏈',
+    api:'https://site.api.espn.com/apis/site/v2/sports/football/college-football',
+    ath:'https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/athletes',
+    groups:'80',coverage:false,ranks:true,conf:true}
+};
+let FBC=FB.nfl;
+function FBS(){return S.fb[FBC.key];}
+function isFB(sp){return sp==='nfl'||sp==='cfb';}
+function fbQS(extra){const g=FBC.groups?`&groups=${FBC.groups}`:'';return extra+g;}
+// CFB has no abbr-based logo pattern — read it off the competitor when present
+function fbLogo(c,abbr){
+  return c?.team?.logo||c?.team?.logos?.[0]?.href||
+    (abbr?`https://a.espncdn.com/i/teamlogos/nfl/500/${String(abbr).toLowerCase()}.png`:'');
+}
+function fbLogoAbbr(abbr){return `https://a.espncdn.com/i/teamlogos/nfl/500/${String(abbr||'').toLowerCase()}.png`;}
+// AP/CFP rank badge (99 = unranked)
+function fbRank(c){const r=c?.curatedRank?.current;return (FBC.ranks&&r&&r<99)?`<span class="fb-rank">#${r}</span>`:'';}
 
-// ── NFL ──
-const NFL='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
-const NFL_LOGO=abbr=>`https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
-
-function refreshCurrent(){if(S.sport==='nfl')loadNFLWeek();else loadGames();}
+function refreshCurrent(){if(isFB(S.sport))loadFBWeek();else loadGames();}
 
 function switchSport(sport){
   S.sport=sport;
+  if(isFB(sport))FBC=FB[sport];
   $('mlbContent').classList.toggle('hidden',sport!=='mlb');
   $('nflContent').classList.toggle('hidden',sport!=='nfl');
+  $('cfbContent').classList.toggle('hidden',sport!=='cfb');
   document.querySelectorAll('.sport-tab').forEach(b=>b.classList.toggle('active',b.dataset.sport===sport));
-  // Date picker is MLB-only — NFL uses its own week selector
+  // Date picker is MLB-only — football uses its own week selector
   document.querySelectorAll('#datePicker,#datePickerM').forEach(d=>{
-    const ctrl=d.closest('.ctrl');if(ctrl)ctrl.style.display=sport==='nfl'?'none':'';
+    const ctrl=d.closest('.ctrl');if(ctrl)ctrl.style.display=isFB(sport)?'none':'';
   });
-  if(sport==='nfl'&&!S.nflLoaded){initNFL();return;}
+  if(isFB(sport)&&!FBS().loaded){initFB();return;}
   populateSelects();
 }
 
 // Load calendar + current week on first NFL visit
-async function initNFL(){
-  const el=$('nflGrid');if(!el)return;
+async function initFB(){
+  const el=$(FBC.p+'Grid');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading NFL schedule…</div>';
-  const data=await api(`${NFL}/scoreboard`);
+  const data=await api(`${FBC.api}/scoreboard${FBC.groups?'?groups='+FBC.groups:''}`);
   if(!data){el.innerHTML='<div class="no-games"><div style="font-size:48px">🏈</div><div>Unable to load NFL data</div></div>';return;}
-  S.nflCalendar=data?.leagues?.[0]?.calendar||[];
-  S.nflYear=data?.season?.year||new Date().getFullYear();
-  S.nflSeasonType=String(data?.season?.type||1);
-  S.nflWeek=String(data?.week?.number||1);
-  S.nflGames=data?.events||[];
-  S.nflLoaded=true;
-  renderNFLControls();
-  renderNFLGrid();
+  FBS().calendar=data?.leagues?.[0]?.calendar||[];
+  FBS().year=data?.season?.year||new Date().getFullYear();
+  FBS().seasonType=String(data?.season?.type||1);
+  FBS().week=String(data?.week?.number||1);
+  FBS().games=data?.events||[];
+  FBS().loaded=true;
+  renderFBControls();
+  renderFBGrid();
   populateSelects();
 }
 
-async function loadNFLWeek(){
-  const el=$('nflGrid');if(!el)return;
+async function loadFBWeek(){
+  const el=$(FBC.p+'Grid');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading games…</div>';
-  S.nflSelId=null;$('nflDetail').classList.remove('on');
-  const data=await api(`${NFL}/scoreboard?seasontype=${S.nflSeasonType}&week=${S.nflWeek}&dates=${S.nflYear}`);
-  S.nflGames=data?.events||[];
-  renderNFLControls();
-  renderNFLGrid();
+  FBS().selId=null;$(FBC.p+'Detail').classList.remove('on');
+  const data=await api(`${FBC.api}/scoreboard?`+fbQS(`seasontype=${FBS().seasonType}&week=${FBS().week}&dates=${FBS().year}`));
+  FBS().games=data?.events||[];
+  renderFBControls();
+  renderFBGrid();
   populateSelects();
 }
 
-function onNFLSeasonType(val){
-  S.nflSeasonType=val;
-  const st=S.nflCalendar.find(c=>c.value===val);
-  S.nflWeek=st?.entries?.[0]?.value||'1';
-  loadNFLWeek();
+function onFBSeasonType(val){
+  FBS().seasonType=val;
+  const st=FBS().calendar.find(c=>c.value===val);
+  FBS().week=st?.entries?.[0]?.value||'1';
+  loadFBWeek();
 }
-function onNFLWeek(val){S.nflWeek=val;loadNFLWeek();}
-function nflStepWeek(dir){
-  const st=S.nflCalendar.find(c=>c.value===S.nflSeasonType);
+function onFBWeek(val){FBS().week=val;loadFBWeek();}
+function fbStepWeek(dir){
+  const st=FBS().calendar.find(c=>c.value===FBS().seasonType);
   const entries=st?.entries||[];
-  const i=entries.findIndex(e=>e.value===S.nflWeek);
+  const i=entries.findIndex(e=>e.value===FBS().week);
   const ni=i+dir;
   if(ni<0||ni>=entries.length)return;
-  S.nflWeek=entries[ni].value;
-  loadNFLWeek();
+  FBS().week=entries[ni].value;
+  loadFBWeek();
 }
-function toggleNFLUpcoming(){S.nflUpcomingOnly=!S.nflUpcomingOnly;renderNFLControls();renderNFLGrid();}
+function toggleFBUpcoming(){FBS().upcomingOnly=!FBS().upcomingOnly;renderFBControls();renderFBGrid();}
 
-function renderNFLControls(){
-  const el=$('nflControlsEl');if(!el)return;
-  if(!S.nflCalendar.length){el.innerHTML='';return;}
-  const stOpts=S.nflCalendar.filter(c=>c.entries?.length).map(c=>`<option value="${c.value}"${c.value===S.nflSeasonType?' selected':''}>${c.label}</option>`).join('');
-  const st=S.nflCalendar.find(c=>c.value===S.nflSeasonType);
+function renderFBControls(){
+  const el=$(FBC.p+'ControlsEl');if(!el)return;
+  if(!FBS().calendar.length){el.innerHTML='';return;}
+  const stOpts=FBS().calendar.filter(c=>c.entries?.length).map(c=>`<option value="${c.value}"${c.value===FBS().seasonType?' selected':''}>${c.label}</option>`).join('');
+  const st=FBS().calendar.find(c=>c.value===FBS().seasonType);
   const entries=st?.entries||[];
-  const wkOpts=entries.map(e=>`<option value="${e.value}"${e.value===S.nflWeek?' selected':''}>${e.label}${e.detail?` (${e.detail})`:''}</option>`).join('');
-  const i=entries.findIndex(e=>e.value===S.nflWeek);
-  const total=S.nflGames.length;
-  const upcoming=S.nflGames.filter(g=>g.competitions?.[0]?.status?.type?.state!=='post').length;
+  const wkOpts=entries.map(e=>`<option value="${e.value}"${e.value===FBS().week?' selected':''}>${e.label}${e.detail?` (${e.detail})`:''}</option>`).join('');
+  const i=entries.findIndex(e=>e.value===FBS().week);
+  const total=FBS().games.length;
+  const upcoming=FBS().games.filter(g=>g.competitions?.[0]?.status?.type?.state!=='post').length;
   el.innerHTML=`<div class="nfl-controls">
   <div class="nfl-ctrl"><span class="nfl-ctrl-lbl">Season</span>
-    <select onchange="onNFLSeasonType(this.value)">${stOpts}</select></div>
+    <select onchange="onFBSeasonType(this.value)">${stOpts}</select></div>
   <div class="nfl-ctrl"><span class="nfl-ctrl-lbl">Week</span>
-    <select onchange="onNFLWeek(this.value)">${wkOpts}</select></div>
+    <select onchange="onFBWeek(this.value)">${wkOpts}</select></div>
   <div class="nfl-week-nav">
-    <button class="nfl-nav-btn" onclick="nflStepWeek(-1)"${i<=0?' disabled':''} title="Previous week">‹</button>
-    <button class="nfl-nav-btn" onclick="nflStepWeek(1)"${i>=entries.length-1?' disabled':''} title="Next week">›</button>
+    <button class="nfl-nav-btn" onclick="fbStepWeek(-1)"${i<=0?' disabled':''} title="Previous week">‹</button>
+    <button class="nfl-nav-btn" onclick="fbStepWeek(1)"${i>=entries.length-1?' disabled':''} title="Next week">›</button>
   </div>
-  <div class="nfl-toggle${S.nflUpcomingOnly?' on':''}" onclick="toggleNFLUpcoming()">${S.nflUpcomingOnly?'✅':'⬜'} Upcoming only</div>
-  <button class="nfl-nav-btn" onclick="loadNFLWeek()" title="Refresh" style="width:auto;padding:0 10px">🔄</button>
+  ${FBC.conf?`<div class="nfl-ctrl"><span class="nfl-ctrl-lbl">Conf</span>
+    <select onchange="onFBConf(this.value)"><option value="all"${FBS().conf==='all'?' selected':''}>All FBS</option>${fbConfList().map(([id,nm])=>`<option value="${id}"${FBS().conf===id?' selected':''}>${nm}</option>`).join('')}</select></div>`:''}
+  <div class="nfl-toggle${FBS().upcomingOnly?' on':''}" onclick="toggleFBUpcoming()">${FBS().upcomingOnly?'✅':'⬜'} Upcoming only</div>
+  <button class="nfl-nav-btn" onclick="loadFBWeek()" title="Refresh" style="width:auto;padding:0 10px">🔄</button>
   <div class="nfl-count">${total} game${total!==1?'s':''}${upcoming!==total?` · ${upcoming} upcoming`:''}</div>
 </div>`;}
 
-function renderNFLGrid(){
-  const el=$('nflGrid');if(!el)return;
-  let games=S.nflGames;
-  if(S.nflUpcomingOnly)games=games.filter(g=>g.competitions?.[0]?.status?.type?.state!=='post');
+function renderFBGrid(){
+  const el=$(FBC.p+'Grid');if(!el)return;
+  let games=FBS().games;
+  if(FBC.conf&&FBS().conf&&FBS().conf!=='all')games=games.filter(g=>(g.competitions?.[0]?.competitors||[]).some(c=>String(c.team?.conferenceId)===String(FBS().conf)));
+  if(FBS().upcomingOnly)games=games.filter(g=>g.competitions?.[0]?.status?.type?.state!=='post');
   if(!games.length){
-    el.innerHTML=`<div class="no-games"><div style="font-size:48px">🏈</div><div>${S.nflUpcomingOnly?'No upcoming games this week':'No games scheduled for this week'}</div></div>`;
+    el.innerHTML=`<div class="no-games"><div style="font-size:48px">🏈</div><div>${FBS().upcomingOnly?'No upcoming games this week':'No games scheduled for this week'}</div></div>`;
     return;
   }
   // Sort: live first, then upcoming by time, then finals
@@ -2319,12 +2363,12 @@ function renderNFLGrid(){
       :`<div class="nfl-vs" style="font-size:10px;color:var(--gold);font-weight:700">${dayLbl}</div><div class="nfl-time">${t}</div>`;
     const spread=odds?.details||'',ou=odds?.overUnder?`O/U ${odds.overUnder}`:'';
     const tv=comp?.broadcasts?.[0]?.names?.[0]||'';
-    return`<div class="nfl-game-card${g.id===S.nflSelId?' active':''}${isLive?' live-game':''}" onclick="selectNFLGame('${g.id}')">
+    return`<div class="nfl-game-card${g.id===FBS().selId?' active':''}${isLive?' live-game':''}" onclick="selectFBGame('${g.id}')">
   ${isLive?`<div class="nfl-live-badge">🔴 LIVE</div>`:''}
   <div class="nfl-card-teams">
-    <div class="nfl-team"><img class="nfl-team-logo" src="${NFL_LOGO(awAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${awAbbr}</div><div class="nfl-team-rec">${awRec}</div></div>
+    <div class="nfl-team"><img class="nfl-team-logo" src="${fbLogo(away,awAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${fbRank(away)}${awAbbr}</div><div class="nfl-team-rec">${awRec}</div></div>
     <div class="nfl-score-center">${scoreOrTime}</div>
-    <div class="nfl-team"><img class="nfl-team-logo" src="${NFL_LOGO(hwAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${hwAbbr}</div><div class="nfl-team-rec">${hwRec}</div></div>
+    <div class="nfl-team"><img class="nfl-team-logo" src="${fbLogo(home,hwAbbr)}" onerror="this.style.display='none'"><div class="nfl-team-abbr">${fbRank(home)}${hwAbbr}</div><div class="nfl-team-rec">${hwRec}</div></div>
   </div>
   <div class="nfl-card-chips">
     ${spread?`<span class="nfl-chip">📊 ${spread}</span>`:''}
@@ -2337,13 +2381,13 @@ function renderNFLGrid(){
   }).join('');
 }
 
-async function selectNFLGame(id){
-  S.nflSelId=id;
-  const g=S.nflGames.find(x=>x.id===id);if(!g)return;
+async function selectFBGame(id){
+  FBS().selId=id;
+  const g=FBS().games.find(x=>x.id===id);if(!g)return;
   document.querySelectorAll('.nfl-game-card').forEach(c=>c.classList.toggle('active',c.getAttribute('onclick')?.includes(`'${id}'`)));
   $('gameSelect').value=id;$('gameSelectM').value=id;
-  $('nflDetail').classList.add('on');
-  $('nflDetail').scrollIntoView({behavior:'smooth',block:'nearest'});
+  $(FBC.p+'Detail').classList.add('on');
+  $(FBC.p+'Detail').scrollIntoView({behavior:'smooth',block:'nearest'});
   const comp=g.competitions?.[0];
   const home=comp?.competitors?.find(c=>c.homeAway==='home');
   const away=comp?.competitors?.find(c=>c.homeAway==='away');
@@ -2351,41 +2395,41 @@ async function selectNFLGame(id){
   const weather=comp?.weather;
   const venue=comp?.venue;
   const status=comp?.status?.type;
-  $('nflMatchupEl').innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading team stats…</div>';
-  $('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';S.nflProps=null;
-  renderNFLHero(g,home,away,venue,status);
-  renderNFLOdds(home,away,odds);
-  renderNFLWinProb(home,away,odds);
-  renderNFLOU(odds,weather,venue);
-  renderNFLWeather(weather,venue);
-  renderNFLUpset(home,away,odds);
+  $(FBC.p+'MatchupEl').innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading team stats…</div>';
+  $(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';FBS().props=null;
+  renderFBHero(g,home,away,venue,status);
+  renderFBOdds(home,away,odds);
+  renderFBWinProb(home,away,odds);
+  renderFBOU(odds,weather,venue);
+  renderFBWeather(weather,venue);
+  renderFBUpset(home,away,odds);
   const homeId=home?.team?.id,awayId=away?.team?.id;
   if(homeId&&awayId){
     try{
-      const[hs,as]=await Promise.all([api(`${NFL}/teams/${homeId}/statistics`),api(`${NFL}/teams/${awayId}/statistics`)]);
-      renderNFLMatchup(away,home,as,hs);
-      go(async()=>loadNFLProps(away,home,as,hs,odds));
-    }catch(e){$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';}
-  } else {$('nflMatchupEl').innerHTML='';$('nflPropsEl').innerHTML='';$('nflCoverageEl').innerHTML='';}
+      const[hs,as]=await Promise.all([api(`${FBC.api}/teams/${homeId}/statistics`),api(`${FBC.api}/teams/${awayId}/statistics`)]);
+      renderFBMatchup(away,home,as,hs);
+      go(async()=>loadFBProps(away,home,as,hs,odds));
+    }catch(e){$(FBC.p+'MatchupEl').innerHTML='';$(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';}
+  } else {$(FBC.p+'MatchupEl').innerHTML='';$(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';}
 }
 
-function renderNFLHero(g,home,away,venue,status){
+function renderFBHero(g,home,away,venue,status){
   const awA=away?.team?.abbreviation||'?',hwA=home?.team?.abbreviation||'?';
   const awName=away?.team?.displayName||'',hwName=home?.team?.displayName||'';
   const awRec=away?.records?.[0]?.summary||'',hwRec=home?.records?.[0]?.summary||'';
   const isLive=status?.state==='in',isFinal=status?.state==='post';
   const t=g.date?new Date(g.date).toLocaleString([],{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):'TBD';
-  const st=S.nflCalendar.find(c=>c.value===S.nflSeasonType);
-  const wkLbl=st?.entries?.find(e=>e.value===S.nflWeek)?.label||'';
+  const st=FBS().calendar.find(c=>c.value===FBS().seasonType);
+  const wkLbl=st?.entries?.find(e=>e.value===FBS().week)?.label||'';
   const tv=g.competitions?.[0]?.broadcasts?.[0]?.names?.[0]||'';
   const vs=(isLive||isFinal)
     ?`<div style="font-size:26px;font-weight:900;color:var(--gold)">${away?.score||0} - ${home?.score||0}</div>${isFinal?`<div style="font-size:11px;color:var(--text3)">FINAL</div>`:isLive?`<div style="font-size:11px;color:var(--green)">${status?.shortDetail||'LIVE'}</div>`:''}`
     :'@';
-  $('nflHeroEl').innerHTML=`<div class="nfl-hero">
+  $(FBC.p+'HeroEl').innerHTML=`<div class="nfl-hero">
   <div class="nfl-hero-teams">
-    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${NFL_LOGO(awA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent)">${awA}</div><div class="nfl-hero-name">${awName}</div><div class="nfl-hero-rec">${awRec}</div></div>
+    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${fbLogo(away,awA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent)">${fbRank(away)}${awA}</div><div class="nfl-hero-name">${awName}</div><div class="nfl-hero-rec">${awRec}</div></div>
     <div class="nfl-hero-vs">${vs}</div>
-    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${NFL_LOGO(hwA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent2)">${hwA}</div><div class="nfl-hero-name">${hwName}</div><div class="nfl-hero-rec">${hwRec}</div></div>
+    <div class="nfl-hero-team"><img class="nfl-hero-logo" src="${fbLogo(home,hwA)}" onerror="this.style.display='none'"><div class="nfl-hero-abbr" style="color:var(--accent2)">${fbRank(home)}${hwA}</div><div class="nfl-hero-name">${hwName}</div><div class="nfl-hero-rec">${hwRec}</div></div>
   </div>
   <div class="nfl-hero-meta">
     <span class="nfl-meta-badge">🕐 ${t}</span>
@@ -2395,13 +2439,13 @@ function renderNFLHero(g,home,away,venue,status){
   </div>
 </div>`;}
 
-function renderNFLOdds(home,away,odds){
-  if(!odds){$('nflOddsEl').innerHTML='';return;}
+function renderFBOdds(home,away,odds){
+  if(!odds){$(FBC.p+'OddsEl').innerHTML='';return;}
   const awML=odds.awayTeamOdds?.moneyLine,hwML=odds.homeTeamOdds?.moneyLine;
   const fmt=ml=>ml!=null?(ml>0?`+${ml}`:`${ml}`):'—';
   const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
   const favA=odds.homeTeamOdds?.favorite?hwA:awA;
-  $('nflOddsEl').innerHTML=`<div class="prob-card"><div class="prob-title">💰 Vegas Lines${favA?` · ${favA} favored`:''}</div>
+  $(FBC.p+'OddsEl').innerHTML=`<div class="prob-card"><div class="prob-title">💰 Vegas Lines${favA?` · ${favA} favored`:''}</div>
   <div class="nfl-odds-grid">
     <div class="nfl-odds-item"><div class="nfl-odds-val">${odds.details||'—'}</div><div class="nfl-odds-lbl">Spread</div></div>
     <div class="nfl-odds-item"><div class="nfl-odds-val">${odds.overUnder||'—'}</div><div class="nfl-odds-lbl">Over/Under</div></div>
@@ -2409,7 +2453,7 @@ function renderNFLOdds(home,away,odds){
     <div class="nfl-odds-item"><div class="nfl-odds-val" style="color:var(--accent2)">${fmt(hwML)}</div><div class="nfl-odds-lbl">${hwA} ML</div></div>
   </div></div>`;}
 
-function renderNFLWinProb(home,away,odds){
+function renderFBWinProb(home,away,odds){
   const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
   let homeWP=52,src='home field edge';
   if(odds?.details){
@@ -2426,12 +2470,12 @@ function renderNFLWinProb(home,away,odds){
     homeWP=Math.round(Math.min(82,Math.max(18,(hwWP/(awWP+hwWP||1))*100+3)));src='team records';
   }
   const awayWP=100-homeWP;
-  $('nflWPEl').innerHTML=`<div class="prob-card"><div class="prob-title">⚡ Win Probability <span style="font-size:10px;color:var(--text3);font-weight:400">via ${src}</span></div>
+  $(FBC.p+'WPEl').innerHTML=`<div class="prob-card"><div class="prob-title">⚡ Win Probability <span style="font-size:10px;color:var(--text3);font-weight:400">via ${src}</span></div>
   <div class="prob-bar-wrap"><div class="prob-away" style="width:${awayWP}%;background:linear-gradient(90deg,#dc2626,#b91c1c)">${awayWP}%</div><div class="prob-home" style="width:${homeWP}%">${homeWP}%</div></div>
   <div class="prob-labels"><span style="color:var(--accent)">${awA} ${awayWP}%</span><span style="color:var(--accent2)">${hwA} ${homeWP}%</span></div>
   </div>`;}
 
-function renderNFLOU(odds,weather,venue){
+function renderFBOU(odds,weather,venue){
   const ou=odds?.overUnder;
   const indoor=venue?.indoor;
   const factors=[],ts_cls=d=>`ts-factor ts-factor-${d}`;
@@ -2453,25 +2497,25 @@ function renderNFLOU(odds,weather,venue){
   else if(score<=-4){lean='Strong UNDER';cls='lean-under-strong';icon='📉';}
   else if(score<=-2){lean='Lean UNDER';cls='lean-under';icon='⬇️';}
   else{lean='Toss-Up';cls='lean-neutral';icon='⚖️';}
-  $('nflOUEl').innerHTML=`<div class="prob-card"><div class="prob-title">📊 O/U Analysis${ou?` · Total ${ou}`:''}</div>
+  $(FBC.p+'OUEl').innerHTML=`<div class="prob-card"><div class="prob-title">📊 O/U Analysis${ou?` · Total ${ou}`:''}</div>
   <div class="ts-factors" style="margin:8px 0">${factors.map(f=>`<span class="${ts_cls(f.d)}">${f.l}</span>`).join('')||'<span style="font-size:11px;color:var(--text3)">Insufficient data</span>'}</div>
   <div class="ts-lean ${cls}" style="display:inline-block;margin-top:4px">${icon} ${lean}</div>
   </div>`;}
 
-function renderNFLWeather(weather,venue){
-  if(venue?.indoor){$('nflWeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">🏟️ Venue</div><div style="font-size:13px;color:var(--text2);margin-top:6px">Indoor dome — no weather impact</div></div>`;return;}
-  if(!weather){$('nflWeatherEl').innerHTML='';return;}
+function renderFBWeather(weather,venue){
+  if(venue?.indoor){$(FBC.p+'WeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">🏟️ Venue</div><div style="font-size:13px;color:var(--text2);margin-top:6px">Indoor dome — no weather impact</div></div>`;return;}
+  if(!weather){$(FBC.p+'WeatherEl').innerHTML='';return;}
   const tmp=weather.temperature,wnd=weather.wind?.speed,dir=weather.wind?.direction?.displayValue||'',desc=weather.displayValue||'';
   const icon=tmp>80?'☀️':tmp<35?'🥶':wnd>15?'💨':'🌤️';
-  $('nflWeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">${icon} Game Weather</div>
+  $(FBC.p+'WeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">${icon} Game Weather</div>
   <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
     ${tmp!=null?`<div class="day-hr-stat"><div class="day-hr-stat-val">${tmp}°F</div><div class="day-hr-stat-lbl">Temp</div></div>`:''}
     ${wnd!=null?`<div class="day-hr-stat"><div class="day-hr-stat-val">${wnd}mph ${dir}</div><div class="day-hr-stat-lbl">Wind</div></div>`:''}
     ${desc?`<div class="day-hr-stat"><div class="day-hr-stat-val" style="font-size:11px">${desc}</div><div class="day-hr-stat-lbl">Conditions</div></div>`:''}
   </div></div>`;}
 
-function renderNFLUpset(home,away,odds){
-  const el=$('nflUpsetEl');if(!el)return;
+function renderFBUpset(home,away,odds){
+  const el=$(FBC.p+'UpsetEl');if(!el)return;
   if(!odds?.details){el.innerHTML='';return;}
   const sp=parseFloat(odds.details);if(isNaN(sp)||Math.abs(sp)<4){el.innerHTML='';return;}
   const homeIsFav=sp<0,margin=Math.abs(sp);
@@ -2495,8 +2539,8 @@ function renderNFLUpset(home,away,odds){
   <div class="upset-note">Check current injury reports and line movement before betting.</div>
 </div>`;}
 
-function renderNFLMatchup(away,home,awStats,hwStats){
-  const el=$('nflMatchupEl');if(!el)return;
+function renderFBMatchup(away,home,awStats,hwStats){
+  const el=$(FBC.p+'MatchupEl');if(!el)return;
   const awA=away?.team?.abbreviation||'AWY',hwA=home?.team?.abbreviation||'HME';
   function gv(stats,catName,statName){
     const cats=stats?.results?.categories||stats?.splits?.categories||[];
@@ -2643,9 +2687,10 @@ function cvGrade(p,arch,scheme,oppPassDefRating){
   return{score:Math.round(score),letter,cls,notes:notes.slice(0,3)};
 }
 
-function renderNFLCoverage(){
-  const el=$('nflCoverageEl');if(!el)return;
-  const d=S.nflProps;if(!d){el.innerHTML='';return;}
+function renderFBCoverage(){
+  const el=$(FBC.p+'CoverageEl');if(!el)return;
+  const d=FBS().props;if(!d){el.innerHTML='';return;}
+  if(!FBC.coverage){renderFBPassMatchup(d);return;}
   const awScheme=cvScheme(d.awAbbr),hwScheme=cvScheme(d.hwAbbr);
   // away receivers face HOME defense scheme; home receivers face AWAY defense
   const rec=p=>p.rTgts>=1.5||p.pos==='RB';
@@ -2663,7 +2708,7 @@ function renderNFLCoverage(){
   cards.sort((a,b)=>b.g.score-a.g.score);
 
   const schemeCard=(abbr,sc)=>`<div class="cv-scheme">
-  <div class="cv-scheme-hdr"><img src="${NFL_LOGO(abbr)}" onerror="this.style.display='none'"><span class="cv-scheme-team">${abbr} Defense</span><span class="cv-scheme-style">${sc.style}</span></div>
+  <div class="cv-scheme-hdr"><img src="${fbLogoAbbr(abbr)}" onerror="this.style.display='none'"><span class="cv-scheme-team">${abbr} Defense</span><span class="cv-scheme-style">${sc.style}</span></div>
   <div class="cv-mz-bar"><div class="cv-mz-man" style="width:${sc.man}%">MAN ${sc.man}%</div><div class="cv-mz-zone" style="width:${100-sc.man}%">ZONE ${100-sc.man}%</div></div>
   <div class="cv-scheme-meta"><span class="cv-meta-pill">🔥 Blitz ${sc.blitz}%</span><span class="cv-meta-pill">✊ Press ${sc.press}%</span></div>
   <div style="font-size:9px;color:var(--text3);margin-top:4px">${sc.note}</div>
@@ -2697,7 +2742,6 @@ function renderNFLCoverage(){
 </div>`;}
 
 // ══════════ NFL PLAYER PROPS ══════════
-const NFL_ATH='https://site.web.api.espn.com/apis/common/v3/sports/football/nfl/athletes';
 const SKILL_POS=new Set(['QB','RB','WR','TE','FB']);
 
 // Pull a stat value from ESPN athlete stats payload (most recent season with data)
@@ -2735,8 +2779,8 @@ function parseSpread(details){
   return{abbr:m[1],line:parseFloat(m[2])};
 }
 
-async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
-  const el=$('nflPropsEl');if(!el)return;
+async function loadFBProps(away,home,awTeamStats,hwTeamStats,odds){
+  const el=$(FBC.p+'PropsEl');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Building player projections…</div>';
   const awId=away?.team?.id,hwId=home?.team?.id;
   const awAbbr=away?.team?.abbreviation||'AWY',hwAbbr=home?.team?.abbreviation||'HME';
@@ -2755,8 +2799,8 @@ async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
 
   // ── Rosters ──
   const[awR,hwR]=await Promise.all([
-    api(`${NFL}/teams/${awId}/roster`),
-    api(`${NFL}/teams/${hwId}/roster`)
+    api(`${FBC.api}/teams/${awId}/roster`),
+    api(`${FBC.api}/teams/${hwId}/roster`)
   ]);
   const pickSkill=data=>{
     const all=(data?.athletes||[]).flatMap(g=>g.items||[]);
@@ -2766,7 +2810,7 @@ async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
   if(!awPlayers.length&&!hwPlayers.length){el.innerHTML='';return;}
 
   // ── Fetch season stats for each skill player ──
-  const fetchAll=players=>Promise.all(players.map(p=>api(`${NFL_ATH}/${p.id}/stats`).catch(()=>null)));
+  const fetchAll=players=>Promise.all(players.map(p=>api(`${FBC.ath}/${p.id}/stats`).catch(()=>null)));
   const[awStatsArr,hwStatsArr]=await Promise.all([fetchAll(awPlayers),fetchAll(hwPlayers)]);
 
   // ── Opponent defensive strength multipliers ──
@@ -2826,13 +2870,13 @@ async function loadNFLProps(away,home,awTeamStats,hwTeamStats,odds){
 
   // Pass yards allowed per game (for coverage grading)
   const passYdsAllowed=ts=>tStat(ts,'passing','opponentYardsPerGame')||tStat(ts,'passing','netYardsPerGame')||0;
-  S.nflProps={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,awId,hwId,awImplied,hwImplied,ou,awSpread,hwSpread,
+  FBS().props={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,awId,hwId,awImplied,hwImplied,ou,awSpread,hwSpread,
     awPassYdsAllowed:passYdsAllowed(awTeamStats),hwPassYdsAllowed:passYdsAllowed(hwTeamStats)};
-  renderNFLProps();
-  go(()=>renderNFLCoverage());
+  renderFBProps();
+  go(()=>renderFBCoverage());
 }
 
-function setNFLPropTab(t){S.nflPropTab=t;renderNFLProps();}
+function setFBPropTab(t){FBS().propTab=t;renderFBProps();}
 
 function propCard(p){
   const rows=[];
@@ -2872,10 +2916,10 @@ function propCard(p){
 </div>`;
 }
 
-function renderNFLProps(){
-  const el=$('nflPropsEl');if(!el)return;
-  const d=S.nflProps;if(!d){el.innerHTML='';return;}
-  const tab=S.nflPropTab;
+function renderFBProps(){
+  const el=$(FBC.p+'PropsEl');if(!el)return;
+  const d=FBS().props;if(!d){el.innerHTML='';return;}
+  const tab=FBS().propTab;
   const all=[...d.away,...d.home];
   let list,grouped=false;
   if(tab==='all'){list=[...all].sort((a,b)=>b.score-a.score).slice(0,10);}
@@ -2888,14 +2932,14 @@ function renderNFLProps(){
   else list=all.slice(0,10);
 
   const tabs=[['all','⭐ Top Plays'],['td','🏈 Anytime TD'],['pass','🎯 Passing'],['rush','🏃 Rushing'],['rec','🙌 Receiving'],['away',d.awAbbr],['home',d.hwAbbr]]
-    .map(([k,l])=>`<button class="np-tab${tab===k?' active':''}" onclick="setNFLPropTab('${k}')">${l}</button>`).join('');
+    .map(([k,l])=>`<button class="np-tab${tab===k?' active':''}" onclick="setFBPropTab('${k}')">${l}</button>`).join('');
 
   let body;
   if(grouped){
     const teamId=tab==='away'?d.awId:d.hwId;
     const abbr=tab==='away'?d.awAbbr:d.hwAbbr;
     const imp=tab==='away'?d.awImplied:d.hwImplied;
-    body=`<div class="np-team-hdr"><img src="${NFL_LOGO(abbr)}" onerror="this.style.display='none'">${abbr} Projections<span class="np-implied">Implied ${imp.toFixed(1)} pts</span></div>
+    body=`<div class="np-team-hdr"><img src="${fbLogoAbbr(abbr)}" onerror="this.style.display='none'">${abbr} Projections<span class="np-implied">Implied ${imp.toFixed(1)} pts</span></div>
     <div class="np-grid">${list.map(propCard).join('')}</div>`;
   } else {
     body=`<div class="np-grid">${list.map(propCard).join('')}</div>`;
@@ -2911,6 +2955,80 @@ function renderNFLProps(){
   ${body}
   <div style="font-size:9px;color:var(--text3);margin-top:8px">▲/▼ = projection above/below the player's season average · Any TD via Poisson on projected TDs · Verify injury status before betting</div>
 </div>`;}
+// ── College: pass-defense matchup grades (no charted man/zone data exists publicly for FBS,
+//    so this grades on real derived numbers only — archetype, volume, and defense allowed) ──
+function renderFBPassMatchup(d){
+  const el=$(FBC.p+'CoverageEl');if(!el)return;
+  const rows=[];
+  const add=(players,oppPassYds,oppAbbr)=>players.forEach(p=>{
+    if(!(p.rTgts>=1.5||p.pos==='RB'))return;
+    const arch=cvArchetype(p);
+    if(arch.key==='rushRB')return;
+    let score=50;const notes=[];
+    if(arch.tgtVol>=8){score+=10;notes.push({t:`Heavy target share (${arch.tgtVol.toFixed(1)}/gm) — offense runs through him`,d:'pos'});}
+    else if(arch.tgtVol>=6){score+=5;}
+    else if(arch.tgtVol<3&&p.pos!=='RB'){score-=8;notes.push({t:`Light target share (${arch.tgtVol.toFixed(1)}/gm) caps the ceiling`,d:'neg'});}
+    if(arch.catchRate>=0.72){score+=6;notes.push({t:`${Math.round(arch.catchRate*100)}% catch rate — reliable hands`,d:'pos'});}
+    else if(arch.catchRate>0&&arch.catchRate<0.52){score-=5;notes.push({t:`Only ${Math.round(arch.catchRate*100)}% catch rate — volatile`,d:'neg'});}
+    if(arch.ypr>=16){score+=6;notes.push({t:`${arch.ypr.toFixed(1)} yds/rec — explosive-play profile`,d:'pos'});}
+    if(oppPassYds>0){
+      const diff=oppPassYds-235; // FBS avg pass yds allowed/gm
+      if(diff>35){score+=10;notes.push({t:`${oppAbbr} allows ${Math.round(oppPassYds)} pass yds/gm — exploitable secondary`,d:'pos'});}
+      else if(diff>15){score+=5;}
+      else if(diff<-35){score-=10;notes.push({t:`${oppAbbr} allows only ${Math.round(oppPassYds)} pass yds/gm — lockdown pass defense`,d:'neg'});}
+      else if(diff<-15){score-=5;}
+    }
+    score=Math.max(5,Math.min(98,score));
+    let letter,cls;
+    if(score>=88){letter='A+';cls='grade-a';}else if(score>=80){letter='A';cls='grade-a';}
+    else if(score>=73){letter='B+';cls='grade-b';}else if(score>=66){letter='B';cls='grade-b';}
+    else if(score>=58){letter='C+';cls='grade-c';}else if(score>=50){letter='C';cls='grade-c';}
+    else if(score>=42){letter='D+';cls='grade-d';}else if(score>=34){letter='D';cls='grade-d';}
+    else{letter='F';cls='grade-f';}
+    rows.push({p,arch,g:{score:Math.round(score),letter,cls,notes:notes.slice(0,3)}});
+  });
+  add(d.away,d.hwPassYdsAllowed,d.hwAbbr);
+  add(d.home,d.awPassYdsAllowed,d.awAbbr);
+  if(!rows.length){el.innerHTML='';return;}
+  rows.sort((a,b)=>b.g.score-a.g.score);
+  const cards=rows.slice(0,10).map(({p,arch,g})=>`<div class="cv-card">
+  <div class="cv-head">
+    ${p.headshot?`<img class="cv-hs" src="${p.headshot}" onerror="this.style.visibility='hidden'" alt="">`:'<div class="cv-hs"></div>'}
+    <div class="cv-nb">
+      <div class="cv-name">${p.name}${p.injured?`<span class="np-inj">${p.injStatus||'INJ'}</span>`:''}</div>
+      <div class="cv-sub">${p.pos} · ${p.teamAbbr} vs ${p.oppAbbr}</div>
+    </div>
+    <div class="cv-grade ${g.cls}"><div class="cv-grade-l">${g.letter}</div><div class="cv-grade-s">Match</div></div>
+  </div>
+  <div class="cv-arch">${arch.label}</div>
+  <div class="cv-splits">
+    <div class="cv-split"><div class="cv-split-v">${arch.ypr.toFixed(1)}</div><div class="cv-split-l">Yds/Rec</div></div>
+    <div class="cv-split"><div class="cv-split-v">${Math.round(arch.catchRate*100)}%</div><div class="cv-split-l">Catch Rt</div></div>
+    <div class="cv-split"><div class="cv-split-v">${arch.tgtVol.toFixed(1)}</div><div class="cv-split-l">Tgts/G</div></div>
+    <div class="cv-split"><div class="cv-split-v" style="color:var(--gold)">${p.projRecYds.toFixed(0)}</div><div class="cv-split-l">Proj Yds</div></div>
+  </div>
+  <div class="cv-notes">${g.notes.map(n=>`<div class="cv-note cv-note-${n.d==='pos'?'pos':'neg'}">${n.d==='pos'?'\u2713':'\u2715'} ${n.t}</div>`).join('')||'<div class="cv-note">Neutral matchup</div>'}</div>
+</div>`).join('');
+  el.innerHTML=`<div class="props-card">
+  <div class="prob-title">\ud83d\udee1\ufe0f Pass Matchup Grades</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Receiver profile vs the opposing pass defense</div>
+  <div class="cv-grid">${cards}</div>
+  <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5">Graded on target volume, catch rate, yards per reception and opponent pass yards allowed. Unlike the NFL view, no man/zone scheme rates are applied — that data isn't publicly available for FBS, so nothing here is inferred from coverage tendencies.</div>
+</div>`;}
+
+// ── College conference filter ──
+function fbConfList(){
+  const m=new Map();
+  (FBS().games||[]).forEach(g=>{
+    (g.competitions?.[0]?.competitors||[]).forEach(c=>{
+      const id=c.team?.conferenceId,nm=c.team?.conferenceId;
+      if(id)m.set(String(id),CFB_CONF[String(id)]||`Conf ${id}`);
+    });
+  });
+  return [...m.entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+}
+function onFBConf(v){FBS().conf=v;renderFBControls();renderFBGrid();populateSelects();}
+const CFB_CONF={'1':'ACC','4':'Big 12','5':'Big Ten','8':'SEC','9':'Pac-12','12':'Conference USA','15':'MAC','17':'Mountain West','18':'Independent','20':'American','21':'Sun Belt','151':'FBS'};
 </script>
 </body>
 </html>
