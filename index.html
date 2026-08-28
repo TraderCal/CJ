@@ -256,6 +256,29 @@ select option{background:#171d2a;color:#fff;}
 .share-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(74,127,181,.7);}
 
 /* ── Share Modal ── */
+.hl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
+.hl-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;scroll-snap-type:x mandatory;}
+.hl-row::-webkit-scrollbar{height:6px;}
+.hl-row::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.hl-item{flex:0 0 218px;scroll-snap-align:start;cursor:pointer;border-radius:10px;overflow:hidden;border:1px solid var(--border);background:var(--surface2);transition:all .2s;}
+.hl-item:hover{border-color:rgba(201,162,39,.45);transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.hl-thumb-wrap{position:relative;aspect-ratio:16/9;background:var(--surface3);overflow:hidden;}
+.hl-thumb{width:100%;height:100%;object-fit:cover;display:block;}
+.hl-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(8,11,20,.05),rgba(8,11,20,.55));}
+.hl-play span{width:38px;height:38px;border-radius:50%;background:rgba(201,162,39,.92);color:#0b0e16;display:flex;align-items:center;justify-content:center;font-size:14px;padding-left:3px;box-shadow:0 2px 12px rgba(0,0,0,.45);transition:transform .2s;}
+.hl-item:hover .hl-play span{transform:scale(1.12);}
+.hl-dur{position:absolute;right:6px;bottom:6px;background:rgba(8,11,20,.85);color:#eef1f6;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;font-variant-numeric:tabular-nums;}
+.hl-meta{padding:8px 10px 10px;}
+.hl-title{font-size:12px;font-weight:700;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.hl-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+.hl-links{display:flex;gap:6px;flex-wrap:wrap;}
+.hl-link{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:7px 13px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);text-decoration:none;transition:all .2s;}
+.hl-link:hover{border-color:rgba(201,162,39,.45);color:var(--gold);background:rgba(201,162,39,.07);}
+.hl-note{font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;}
+.vid-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:min(860px,100%);overflow:hidden;box-shadow:var(--shadow-lg);}
+.vid-modal video{width:100%;display:block;background:#000;max-height:72vh;}
+.vid-bar{display:flex;align-items:flex-start;gap:10px;padding:11px 14px;}
+.vid-bar-title{font-size:13px;font-weight:700;flex:1;line-height:1.4;}
 .modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px;}
 .modal-overlay.on{display:flex;}
 .share-modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;width:100%;max-width:400px;animation:fadeIn .25s ease;}
@@ -731,6 +754,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="matchupEl"></div>
       <div id="oddsEl"></div>
       <div id="evEl"></div>
+      <div id="highlightsEl"></div>
     </div>
   </div>
 
@@ -749,6 +773,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="nflPropsEl"></div>
       <div id="nflCoverageEl"></div>
       <div id="nflMatchupEl"></div>
+      <div id="nflHighlightsEl"></div>
     </div>
   </div>
   <div id="cfbContent" class="hidden">
@@ -765,6 +790,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="cfbPropsEl"></div>
       <div id="cfbCoverageEl"></div>
       <div id="cfbMatchupEl"></div>
+      <div id="cfbHighlightsEl"></div>
     </div>
   </div>
 </main>
@@ -774,6 +800,16 @@ select option{background:#171d2a;color:#fff;}
 <button class="share-fab" id="shareFab" onclick="openShareModal()" title="Share this prediction">🔗</button>
 
 <!-- Share Modal -->
+<div class="modal-overlay" id="vidModal" onclick="handleVidModalClick(event)">
+  <div class="vid-modal">
+    <video id="vidPlayer" controls playsinline preload="metadata"></video>
+    <div class="vid-bar">
+      <div class="vid-bar-title" id="vidTitle"></div>
+      <button class="share-close" onclick="closeVideo()">✕</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="shareModal" onclick="handleModalClick(event)">
   <div class="share-modal" id="shareModalInner">
     <div class="share-modal-title">
@@ -1260,7 +1296,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -1303,6 +1339,7 @@ async function selectGame(pk){
   go(()=>renderMatchup(game));
   go(()=>renderOdds(game,espn));
   go(()=>renderEV(game));
+  go(async()=>loadHighlights(game));
   // Stage 4 — async: series context, umpire, bullpen (separate fetches)
   go(async()=>loadSeriesAndBullpen(game));
   $('shareFab').classList.add('visible');
@@ -2417,6 +2454,7 @@ async function selectFBGame(id){
   renderFBOU(odds,weather,venue);
   renderFBWeather(weather,venue);
   renderFBUpset(home,away,odds);
+  go(()=>renderFBHighlights(g));
   const homeId=home?.team?.id,awayId=away?.team?.id;
   if(homeId&&awayId){
     try{
@@ -3043,6 +3081,123 @@ function fbConfList(){
 }
 function onFBConf(v){FBS().conf=v;renderFBControls();renderFBGrid();populateSelects();}
 const CFB_CONF={'1':'ACC','4':'Big 12','5':'Big Ten','8':'SEC','9':'Pac-12','12':'Conference USA','15':'MAC','17':'Mountain West','18':'Independent','20':'American','21':'Sun Belt','151':'FBS'};
+
+// ══════════ VIDEO HIGHLIGHTS ══════════
+// MLB exposes direct MP4s via /game/{pk}/content, so those play inline.
+// ESPN's public API returns no video assets for NFL/CFB (rights-gated),
+// so football falls back to the event's own highlight links.
+
+// Walk any JSON shape and collect objects that carry a playbacks array.
+function collectVideos(node,out,seen){
+  out=out||[];seen=seen||new Set();
+  if(!node||typeof node!=='object')return out;
+  if(Array.isArray(node)){node.forEach(n=>collectVideos(n,out,seen));return out;}
+  if(Array.isArray(node.playbacks)&&node.playbacks.length){
+    const key=node.id||node.slug||node.headline;
+    if(key&&!seen.has(key)){seen.add(key);out.push(node);}
+  }
+  Object.values(node).forEach(v=>{if(v&&typeof v==='object')collectVideos(v,out,seen);});
+  return out;
+}
+function bestPlayback(v){
+  const ps=(v.playbacks||[]).filter(p=>/\.mp4/i.test(p.url||''));
+  if(!ps.length)return null;
+  const score=p=>{
+    const u=p.url||'';
+    const m=u.match(/_(\d+)K\.mp4/i);
+    const kbps=m?parseInt(m[1]):3000;
+    // prefer ~2500-5000K: good quality without a slow start
+    return Math.abs(kbps-4000);
+  };
+  return ps.slice().sort((a,b)=>score(a)-score(b))[0].url;
+}
+function bestThumb(v){
+  const cuts=v.image?.cuts;
+  if(Array.isArray(cuts)&&cuts.length){
+    const sorted=cuts.slice().sort((a,b)=>Math.abs((a.width||0)-640)-Math.abs((b.width||0)-640));
+    return sorted[0].src||'';
+  }
+  if(cuts&&typeof cuts==='object'){const k=Object.values(cuts)[0];if(k?.src)return k.src;}
+  return v.thumbnail||'';
+}
+function fmtDur(d){
+  if(!d)return '';
+  const parts=String(d).split(':').map(Number);
+  if(parts.length===3)return (parts[0]?parts[0]+':'+String(parts[1]).padStart(2,'0'):parts[1])+':'+String(parts[2]).padStart(2,'0');
+  return String(d);
+}
+
+function openVideo(url,title){
+  const m=$('vidModal'),p=$('vidPlayer');
+  if(!m||!p)return;
+  p.src=url;$('vidTitle').textContent=title||'';
+  m.classList.add('on');document.body.style.overflow='hidden';
+  p.play&&p.play().catch(()=>{});
+}
+function closeVideo(){
+  const m=$('vidModal'),p=$('vidPlayer');
+  if(!m||!p)return;
+  p.pause&&p.pause();p.removeAttribute('src');p.load&&p.load();
+  m.classList.remove('on');document.body.style.overflow='';
+}
+function handleVidModalClick(e){if(e.target===$('vidModal'))closeVideo();}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('vidModal')?.classList.contains('on'))closeVideo();});
+
+function hlCards(vids){
+  return vids.map(v=>{
+    const url=bestPlayback(v);if(!url)return '';
+    const thumb=bestThumb(v);
+    const title=(v.headline||v.blurb||'Highlight').replace(/"/g,'&quot;');
+    const dur=fmtDur(v.duration);
+    const when=v.date?new Date(v.date).toLocaleDateString([],{month:'short',day:'numeric'}):'';
+    return`<div class="hl-item" onclick="openVideo('${url}','${title}')" title="${title}">
+  <div class="hl-thumb-wrap">
+    ${thumb?`<img class="hl-thumb" src="${thumb}" loading="lazy" alt="">`:''}
+    <div class="hl-play"><span>▶</span></div>
+    ${dur?`<div class="hl-dur">${dur}</div>`:''}
+  </div>
+  <div class="hl-meta"><div class="hl-title">${v.headline||v.blurb||'Highlight'}</div>${when?`<div class="hl-sub">${when}</div>`:''}</div>
+</div>`;
+  }).filter(Boolean).join('');
+}
+
+// ── MLB ──
+async function loadHighlights(game){
+  const el=$('highlightsEl');if(!el)return;
+  const state=game.status?.abstractGameState;
+  if(state==='Preview'){el.innerHTML='';return;}
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading highlights…</div>';
+  const data=await api(`${MLB}/game/${game.gamePk}/content`);
+  const vids=collectVideos(data).filter(v=>bestPlayback(v));
+  if(!vids.length){el.innerHTML='';return;}
+  // Condensed game / full highlight reels first, then individual plays
+  const rank=v=>{const h=(v.headline||'').toLowerCase();
+    return /highlights/.test(h)?0:/condensed/.test(h)?1:2;};
+  vids.sort((a,b)=>rank(a)-rank(b)||new Date(b.date||0)-new Date(a.date||0));
+  el.innerHTML=`<div class="hl-card">
+  <div class="prob-title">🎬 Video Highlights <span style="font-size:10px;color:var(--text3);font-weight:400">${vids.length} clip${vids.length!==1?'s':''}</span></div>
+  <div class="hl-row">${hlCards(vids.slice(0,12))}</div>
+</div>`;}
+
+// ── Football: link out (ESPN gates highlight video) ──
+function renderFBHighlights(g){
+  const el=$(FBC.p+'HighlightsEl');if(!el)return;
+  const state=g.competitions?.[0]?.status?.type?.state;
+  if(state==='pre'){el.innerHTML='';return;}
+  const want={highlights:{t:'Watch highlights',i:'🎬'},summary:{t:'Gamecast',i:'📊'},
+              boxscore:{t:'Box score',i:'📋'},pbp:{t:'Play-by-play',i:'📝'},recap:{t:'Recap',i:'📰'}};
+  const seen=new Set(),links=[];
+  (g.links||[]).forEach(l=>{
+    const rel=(l.rel||[]).find(r=>want[r]&&!seen.has(r));
+    if(rel&&l.href&&!l.isPremium){seen.add(rel);links.push({...want[rel],href:l.href});}
+  });
+  if(!links.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="hl-card">
+  <div class="prob-title">🎬 Highlights &amp; Recap</div>
+  <div class="hl-links">${links.map(l=>`<a class="hl-link" href="${l.href}" target="_blank" rel="noopener noreferrer">${l.i} ${l.t} ↗</a>`).join('')}</div>
+  <div class="hl-note">Football highlight video is rights-restricted, so these open on ESPN rather than playing here. MLB clips play inline on the baseball tab.</div>
+</div>`;}
+
 </script>
 </body>
 </html>
