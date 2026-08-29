@@ -256,6 +256,34 @@ select option{background:#171d2a;color:#fff;}
 .share-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(74,127,181,.7);}
 
 /* ── Share Modal ── */
+.bx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
+.bx-scroll{overflow-x:auto;}
+.bx-scroll::-webkit-scrollbar{height:6px;}
+.bx-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.ls-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:340px;}
+.ls-table th{font-size:10px;font-weight:700;color:var(--text3);padding:5px 7px;text-align:center;border-bottom:1px solid var(--border);}
+.ls-table td{font-size:12px;padding:6px 7px;text-align:center;border-bottom:1px solid rgba(30,38,53,.55);}
+.ls-table tr:last-child td{border-bottom:none;}
+.ls-team{text-align:left!important;font-weight:800;font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.ls-team img{width:18px;height:18px;object-fit:contain;}
+.ls-tot{font-weight:900;color:var(--gold);}
+.ls-cur{background:rgba(201,162,39,.10);}
+.bx-tabs{display:flex;gap:5px;margin:10px 0 8px;flex-wrap:wrap;}
+.bx-tab{font-size:10px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
+.bx-tab img{width:14px;height:14px;object-fit:contain;}
+.bx-tab.active{background:rgba(201,162,39,.13);border-color:var(--gold);color:var(--gold);}
+.bx-grp{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);margin:12px 0 4px;}
+.bx-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:430px;}
+.bx-table th{font-size:9.5px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;padding:5px 6px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
+.bx-table th:first-child{text-align:left;}
+.bx-table td{font-size:11.5px;padding:5px 6px;text-align:right;border-bottom:1px solid rgba(30,38,53,.45);white-space:nowrap;}
+.bx-table td:first-child{text-align:left;}
+.bx-table tr:last-child td{border-bottom:none;}
+.bx-table tfoot td{font-weight:800;color:var(--gold);border-top:1px solid var(--border);border-bottom:none;}
+.bx-nm{font-weight:700;}
+.bx-pos{font-size:9.5px;color:var(--text3);margin-left:4px;}
+.bx-sub{padding-left:12px!important;}
+.bx-note{font-size:9.5px;color:var(--text3);margin-left:5px;font-style:italic;}
 .hl-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
 .hl-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 6px;scroll-snap-type:x mandatory;}
 .hl-row::-webkit-scrollbar{height:6px;}
@@ -755,6 +783,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="oddsEl"></div>
       <div id="evEl"></div>
       <div id="highlightsEl"></div>
+      <div id="boxEl"></div>
     </div>
   </div>
 
@@ -774,6 +803,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="nflCoverageEl"></div>
       <div id="nflMatchupEl"></div>
       <div id="nflHighlightsEl"></div>
+      <div id="nflBoxEl"></div>
     </div>
   </div>
   <div id="cfbContent" class="hidden">
@@ -791,6 +821,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="cfbCoverageEl"></div>
       <div id="cfbMatchupEl"></div>
       <div id="cfbHighlightsEl"></div>
+      <div id="cfbBoxEl"></div>
     </div>
   </div>
 </main>
@@ -893,11 +924,11 @@ const S={
   parlayOpen:false,
   awayFormRaw:null,homeFormRaw:null,
   plateUmpire:null,
-  dayBestHR:null,
+  dayBestHR:null,box:null,
   sport:'mlb',
   fb:{
-    nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all'},
-    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all'}
+    nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
+    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null}
   }
 };
 
@@ -1296,7 +1327,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';$('boxEl').innerHTML='';S.box=null;
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -1340,6 +1371,7 @@ async function selectGame(pk){
   go(()=>renderOdds(game,espn));
   go(()=>renderEV(game));
   go(async()=>loadHighlights(game));
+  go(async()=>loadBoxscore(game));
   // Stage 4 — async: series context, umpire, bullpen (separate fetches)
   go(async()=>loadSeriesAndBullpen(game));
   $('shareFab').classList.add('visible');
@@ -2455,6 +2487,7 @@ async function selectFBGame(id){
   renderFBWeather(weather,venue);
   renderFBUpset(home,away,odds);
   go(()=>renderFBHighlights(g));
+  go(async()=>loadFBBoxscore(g));
   const homeId=home?.team?.id,awayId=away?.team?.id;
   if(homeId&&awayId){
     try{
@@ -3196,6 +3229,155 @@ function renderFBHighlights(g){
   <div class="prob-title">🎬 Highlights &amp; Recap</div>
   <div class="hl-links">${links.map(l=>`<a class="hl-link" href="${l.href}" target="_blank" rel="noopener noreferrer">${l.i} ${l.t} ↗</a>`).join('')}</div>
   <div class="hl-note">Football highlight video is rights-restricted, so these open on ESPN rather than playing here. MLB clips play inline on the baseball tab.</div>
+</div>`;}
+
+// ══════════ BOX SCORES ══════════
+function bxNum(v){return (v===undefined||v===null||v==='')?'-':v;}
+
+// ── MLB ──
+async function loadBoxscore(game){
+  const el=$('boxEl');if(!el)return;
+  if(game.status?.abstractGameState==='Preview'){el.innerHTML='';return;}
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading box score…</div>';
+  const[box,ls]=await Promise.all([
+    api(`${MLB}/game/${game.gamePk}/boxscore`),
+    api(`${MLB}/game/${game.gamePk}/linescore`)
+  ]);
+  if(!box?.teams){el.innerHTML='';return;}
+  S.box={game,box,ls,tab:'away'};
+  renderBoxscore();
+}
+
+function lineScoreHTML(game,ls){
+  if(!ls?.innings?.length)return'';
+  const aw=game.teams?.away?.team,hw=game.teams?.home?.team;
+  const n=Math.max(9,ls.innings.length);
+  const cur=ls.currentInning;
+  const head=Array.from({length:n},(_,i)=>`<th class="${i+1===cur?'ls-cur':''}">${i+1}</th>`).join('');
+  const row=(side,team)=>{
+    const cells=Array.from({length:n},(_,i)=>{
+      const inn=ls.innings[i];
+      const v=inn?.[side]?.runs;
+      return`<td class="${i+1===cur?'ls-cur':''}">${v===undefined?'':v}</td>`;
+    }).join('');
+    const t=ls.teams?.[side]||{};
+    return`<tr><td class="ls-team"><img src="${LOGO(team?.id)}" onerror="this.style.display='none'">${team?.abbreviation||team?.name||''}</td>${cells}<td class="ls-tot">${bxNum(t.runs)}</td><td>${bxNum(t.hits)}</td><td>${bxNum(t.errors)}</td></tr>`;
+  };
+  return`<div class="bx-scroll"><table class="ls-table">
+  <thead><tr><th style="text-align:left">&nbsp;</th>${head}<th>R</th><th>H</th><th>E</th></tr></thead>
+  <tbody>${row('away',aw)}${row('home',hw)}</tbody></table></div>`;
+}
+
+function setBoxTab(t){if(S.box){S.box.tab=t;renderBoxscore();}}
+
+function renderBoxscore(){
+  const el=$('boxEl');if(!el)return;
+  const d=S.box;if(!d){el.innerHTML='';return;}
+  const{game,box,ls,tab}=d;
+  const side=tab==='home'?'home':'away';
+  const t=box.teams?.[side];if(!t){el.innerHTML='';return;}
+  const players=t.players||{};
+  const awT=game.teams?.away?.team,hwT=game.teams?.home?.team;
+
+  // batting order: "701" -> slot 7, 00 = starter
+  const batters=Object.values(players)
+    .filter(p=>p.battingOrder&&p.stats?.batting&&Object.keys(p.stats.batting).length)
+    .sort((a,b)=>parseInt(a.battingOrder)-parseInt(b.battingOrder));
+  const bRows=batters.map(p=>{
+    const b=p.stats.batting,sub=p.battingOrder&&p.battingOrder.slice(-2)!=='00';
+    const slot=Math.floor(parseInt(p.battingOrder)/100);
+    return`<tr><td class="${sub?'bx-sub':''}"><span class="bx-nm">${sub?'':slot+'. '}${p.person?.fullName||'?'}</span><span class="bx-pos">${p.position?.abbreviation||''}</span></td>
+    <td>${bxNum(b.atBats)}</td><td>${bxNum(b.runs)}</td><td>${bxNum(b.hits)}</td><td>${bxNum(b.rbi)}</td><td>${bxNum(b.baseOnBalls)}</td><td>${bxNum(b.strikeOuts)}</td><td>${bxNum(b.homeRuns)}</td><td>${p.seasonStats?.batting?.avg??'-'}</td></tr>`;
+  }).join('');
+  const bt=t.teamStats?.batting||{};
+
+  const pitchers=Object.values(players)
+    .filter(p=>p.stats?.pitching&&(p.stats.pitching.inningsPitched!==undefined))
+    .sort((a,b)=>(b.gameStatus?.isCurrentPitcher?1:0)-(a.gameStatus?.isCurrentPitcher?1:0));
+  const pRows=pitchers.map(p=>{
+    const q=p.stats.pitching;
+    return`<tr><td><span class="bx-nm">${p.person?.fullName||'?'}</span>${q.note?`<span class="bx-note">${q.note}</span>`:''}</td>
+    <td>${bxNum(q.inningsPitched)}</td><td>${bxNum(q.hits)}</td><td>${bxNum(q.runs)}</td><td>${bxNum(q.earnedRuns)}</td><td>${bxNum(q.baseOnBalls)}</td><td>${bxNum(q.strikeOuts)}</td><td>${bxNum(q.homeRuns)}</td><td>${p.seasonStats?.pitching?.era??'-'}</td></tr>`;
+  }).join('');
+
+  const tabBtn=(k,team)=>`<button class="bx-tab${tab===k?' active':''}" onclick="setBoxTab('${k}')"><img src="${LOGO(team?.id)}" onerror="this.style.display='none'">${team?.abbreviation||''}</button>`;
+
+  el.innerHTML=`<div class="bx-card">
+  <div class="prob-title">📋 Box Score</div>
+  ${lineScoreHTML(game,ls)}
+  <div class="bx-tabs">${tabBtn('away',awT)}${tabBtn('home',hwT)}</div>
+  ${bRows?`<div class="bx-grp">Batting</div><div class="bx-scroll"><table class="bx-table">
+    <thead><tr><th>Batter</th><th>AB</th><th>R</th><th>H</th><th>RBI</th><th>BB</th><th>K</th><th>HR</th><th>AVG</th></tr></thead>
+    <tbody>${bRows}</tbody>
+    <tfoot><tr><td>Team</td><td>${bxNum(bt.atBats)}</td><td>${bxNum(bt.runs)}</td><td>${bxNum(bt.hits)}</td><td>${bxNum(bt.rbi)}</td><td>${bxNum(bt.baseOnBalls)}</td><td>${bxNum(bt.strikeOuts)}</td><td>${bxNum(bt.homeRuns)}</td><td>${bt.avg??'-'}</td></tr></tfoot>
+  </table></div>`:''}
+  ${pRows?`<div class="bx-grp">Pitching</div><div class="bx-scroll"><table class="bx-table">
+    <thead><tr><th>Pitcher</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>K</th><th>HR</th><th>ERA</th></tr></thead>
+    <tbody>${pRows}</tbody></table></div>`:''}
+</div>`;}
+
+// ── Football (NFL + CFB share one renderer) ──
+function setFBBoxTab(t){if(FBS().box){FBS().box.tab=t;renderFBBoxscore();}}
+
+async function loadFBBoxscore(g){
+  const el=$(FBC.p+'BoxEl');if(!el)return;
+  const state=g.competitions?.[0]?.status?.type?.state;
+  if(state==='pre'){el.innerHTML='';return;}
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading box score…</div>';
+  const sum=await api(`${FBC.api}/summary?event=${g.id}`);
+  const bs=sum?.boxscore;
+  if(!bs||(!bs.players?.length&&!bs.teams?.length)){el.innerHTML='';return;}
+  FBS().box={g,bs,tab:'0'};
+  renderFBBoxscore();
+}
+
+function renderFBBoxscore(){
+  const el=$(FBC.p+'BoxEl');if(!el)return;
+  const d=FBS().box;if(!d){el.innerHTML='';return;}
+  const{bs,tab}=d;
+  const teams=bs.teams||[];
+  const players=bs.players||[];
+
+  // team stat comparison
+  let teamHTML='';
+  if(teams.length===2){
+    const a=teams[0],b=teams[1];
+    const names=(a.statistics||[]).map(s=>s.label||s.name);
+    const rows=names.map((lbl,i)=>{
+      const av=a.statistics[i]?.displayValue,bv=(b.statistics||[]).find(s=>(s.label||s.name)===lbl)?.displayValue;
+      if(av===undefined&&bv===undefined)return'';
+      return`<div class="nfl-stat-row"><div class="nfl-stat-val-l" style="color:var(--accent)">${bxNum(av)}</div><div class="nfl-stat-lbl">${lbl}</div><div class="nfl-stat-val-r" style="color:var(--accent2)">${bxNum(bv)}</div></div>`;
+    }).filter(Boolean).join('');
+    if(rows)teamHTML=`<div class="bx-grp">Team Stats</div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:800;text-transform:uppercase;margin:2px 0 4px">
+      <span style="color:var(--accent)">${a.team?.abbreviation||''}</span><span style="color:var(--accent2)">${b.team?.abbreviation||''}</span></div>
+    <div class="nfl-matchup-rows">${rows}</div>`;
+  }
+
+  // per-team player groups
+  let playerHTML='';
+  const idx=parseInt(tab)||0;
+  const tp=players[idx];
+  if(tp){
+    playerHTML=(tp.statistics||[]).map(grp=>{
+      const rows=(grp.athletes||[]).filter(a=>a.stats?.length).map(a=>
+        `<tr><td><span class="bx-nm">${a.athlete?.displayName||'?'}</span>${a.athlete?.jersey?`<span class="bx-pos">#${a.athlete.jersey}</span>`:''}</td>${a.stats.map(v=>`<td>${bxNum(v)}</td>`).join('')}</tr>`).join('');
+      if(!rows)return'';
+      const heads=(grp.labels||[]).map(l=>`<th>${l}</th>`).join('');
+      const tot=grp.totals?.length?`<tfoot><tr><td>Total</td>${grp.totals.map(v=>`<td>${bxNum(v)}</td>`).join('')}</tr></tfoot>`:'';
+      const label=(grp.text||grp.name||'').replace(/^\S+\s+/,'');
+      return`<div class="bx-grp">${label||grp.name}</div><div class="bx-scroll"><table class="bx-table">
+        <thead><tr><th>Player</th>${heads}</tr></thead><tbody>${rows}</tbody>${tot}</table></div>`;
+    }).filter(Boolean).join('');
+  }
+
+  const tabs=players.map((tp2,i)=>`<button class="bx-tab${String(i)===String(tab)?' active':''}" onclick="setFBBoxTab('${i}')"><img src="${fbLogo(tp2,tp2.team?.abbreviation)}" onerror="this.style.display='none'">${tp2.team?.abbreviation||''}</button>`).join('');
+
+  if(!teamHTML&&!playerHTML){el.innerHTML='';return;}
+  el.innerHTML=`<div class="bx-card">
+  <div class="prob-title">📋 Box Score</div>
+  ${teamHTML}
+  ${players.length?`<div class="bx-tabs">${tabs}</div>${playerHTML}`:''}
 </div>`;}
 
 </script>
