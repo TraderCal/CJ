@@ -227,6 +227,13 @@ select option{background:#171d2a;color:#fff;}
 .share-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(74,127,181,.7);}
 
 /* ── Share Modal ── */
+@keyframes playIn{from{opacity:0;transform:translateY(-6px);background:rgba(201,162,39,.22)}to{opacity:1;transform:none;background:transparent}}
+@keyframes livePing{0%{box-shadow:0 0 0 0 rgba(192,91,91,.55)}70%{box-shadow:0 0 0 7px rgba(192,91,91,0)}100%{box-shadow:0 0 0 0 rgba(192,91,91,0)}}
+.live-pill{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;color:var(--red);background:rgba(192,91,91,.13);border:1px solid rgba(192,91,91,.35);padding:2px 8px;border-radius:20px;margin-left:7px;vertical-align:2px;}
+.live-pill i{width:6px;height:6px;border-radius:50%;background:var(--red);animation:livePing 1.8s infinite;}
+.live-stamp{font-size:9.5px;color:var(--text3);font-weight:400;margin-left:6px;}
+.pbp-row.fresh{animation:playIn .7s ease;}
+.gcast-live.pulse{animation:playIn .5s ease;}
 .gc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
 .gcast-live{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--surface2);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:12px 14px;margin:8px 0 4px;}
 .diamond{position:relative;width:74px;height:74px;flex-shrink:0;}
@@ -927,6 +934,8 @@ const S={
   leaderData:{hr:[],hit:[],rbi:[]},
   theme:localStorage.getItem('mlb_theme')||'dark',
   liveRefreshInterval:null,liveCountdown:90,
+  liveDetailInterval:null,liveDetailKind:null,liveDetailAt:0,liveDetailTick:0,
+  lastPlaySig:{},openDrives:new Set(),
   parlay:JSON.parse(localStorage.getItem('mlb_parlay')||'[]'),
   parlayOpen:false,
   awayFormRaw:null,homeFormRaw:null,
@@ -1207,7 +1216,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';$('boxEl').innerHTML='';$('gamecastEl').innerHTML='';S.box=null;
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';$('boxEl').innerHTML='';$('gamecastEl').innerHTML='';S.box=null;stopDetailLive();
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -2205,6 +2214,7 @@ function refreshCurrent(){if(isFB(S.sport))loadFBWeek();else loadGames();}
 
 function switchSport(sport){
   S.sport=sport;
+  stopDetailLive();
   if(isFB(sport))FBC=FB[sport];
   $('mlbContent').classList.toggle('hidden',sport!=='mlb');
   $('nflContent').classList.toggle('hidden',sport!=='nfl');
@@ -2358,7 +2368,7 @@ async function selectFBGame(id){
   const venue=comp?.venue;
   const status=comp?.status?.type;
   $(FBC.p+'MatchupEl').innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading team stats…</div>';
-  $(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';$(FBC.p+'GamecastEl').innerHTML='';FBS().props=null;
+  $(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';$(FBC.p+'GamecastEl').innerHTML='';FBS().props=null;stopDetailLive();
   renderFBHero(g,home,away,venue,status);
   renderFBOdds(home,away,odds);
   renderFBWinProb(home,away,odds);
@@ -3123,7 +3133,9 @@ async function loadBoxscore(game){
     api(`${MLB}/game/${game.gamePk}/linescore`),
     api(`${MLB}/game/${game.gamePk}/playByPlay`)
   ]);
+  S.lastPlaySig.mlb='';
   go(()=>renderGamecast(game,ls,pbp));
+  if(isLiveMLB(game))startDetailLive('mlb');else stopDetailLive();
   if(!box?.teams){el.innerHTML='';return;}
   S.box={game,box,ls,tab:'away'};
   renderBoxscore();
@@ -3206,7 +3218,9 @@ async function loadFBBoxscore(g){
   if(state==='pre'){el.innerHTML='';return;}
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading box score…</div>';
   const sum=await api(`${FBC.api}/summary?event=${g.id}`);
+  S.lastPlaySig[FBC.key]='';S.openDrives.clear();
   go(()=>renderFBGamecast(g,sum));
+  if(isLiveFB(g))startDetailLive(FBC.key);else stopDetailLive();
   const bs=sum?.boxscore;
   if(!bs||(!bs.players?.length&&!bs.teams?.length)){el.innerHTML='';return;}
   FBS().box={g,bs,tab:'0'};
@@ -3267,6 +3281,7 @@ function renderFBBoxscore(){
 // ── MLB ──
 function renderGamecast(game,ls,pbp){
   const el=$('gamecastEl');if(!el)return;
+  let keepScroll=0;try{keepScroll=el.querySelector?.('.pbp-list')?.scrollTop||0;}catch(e){}
   const plays=pbp?.allPlays||[];
   const live=game.status?.abstractGameState==='Live';
   if(!plays.length&&!live){el.innerHTML='';return;}
@@ -3304,6 +3319,11 @@ function renderGamecast(game,ls,pbp){
   // Last play
   const lastPlay=[...plays].reverse().find(p=>p.result?.description);
   const lastHTML=lastPlay?`<div class="gcast-last"><b>Last play</b>${lastPlay.result.description}</div>`:'';
+  // flag the newest play as fresh only when it changed since the last render
+  const sig=lastPlay?`${lastPlay.about?.atBatIndex}-${lastPlay.result?.description}`:'';
+  const isFresh=live&&sig&&S.lastPlaySig.mlb&&S.lastPlaySig.mlb!==sig;
+  S.lastPlaySig.mlb=sig;
+  let firstRow=true;
 
   // Play-by-play, newest first, grouped by half-inning
   let pbpHTML='',curKey='';
@@ -3317,7 +3337,8 @@ function renderGamecast(game,ls,pbp){
       pbpHTML+=`<div class="pbp-inn">${(a.halfInning||'').replace(/^./,c=>c.toUpperCase())} ${a.inning} · ${side} batting</div>`;
     }
     const scored=a.isScoringPlay;
-    pbpHTML+=`<div class="pbp-row ${scored?'score':''}">
+    const fresh=firstRow&&isFresh;firstRow=false;
+    pbpHTML+=`<div class="pbp-row ${scored?'score':''} ${fresh?'fresh':''}">
   <div class="pbp-tick">${p.count?`${p.count.balls}-${p.count.strikes}`:''}</div>
   <div class="pbp-txt">${r.description}</div>
   ${scored?`<div class="pbp-sc">${r.awayScore}-${r.homeScore}</div>`:''}
@@ -3325,13 +3346,20 @@ function renderGamecast(game,ls,pbp){
   });
 
   el.innerHTML=`<div class="gc-card">
-  <div class="prob-title">📻 Gamecast</div>
+  <div class="prob-title">📻 Gamecast${live?livePill():''}${live?`<span id="liveStampEl" class="live-stamp">updated just now</span>`:''}</div>
   ${liveHTML}${lastHTML}
   ${pbpHTML?`<div class="pbp-list">${pbpHTML}</div>`:''}
-</div>`;}
+</div>`;
+  if(keepScroll){try{const l=el.querySelector?.('.pbp-list');if(l)l.scrollTop=keepScroll;}catch(e){}}
+}
 
 // ── Football (NFL + CFB) ──
-function toggleDrive(elm){elm.parentElement.classList.toggle('open');}
+function toggleDrive(elm,idx){
+  const d=elm.parentElement;
+  d.classList.toggle('open');
+  const k=`${FBC.key}:${idx}`;
+  if(d.classList.contains('open'))S.openDrives.add(k);else S.openDrives.delete(k);
+}
 
 function driveResClass(r){
   const t=String(r||'').toUpperCase();
@@ -3374,16 +3402,20 @@ function renderFBGamecast(g,sum){
   // Drives, newest first
   let drivesHTML='';
   if(drives.length){
-    drivesHTML=drives.slice().reverse().map(d=>{
+    const sigF=(()=>{const last=drives[drives.length-1];const lp=last?.plays?.[last.plays.length-1];return lp?`${lp.id||lp.sequenceNumber||''}-${lp.text||''}`:'';})();
+    const freshF=state==='in'&&sigF&&S.lastPlaySig[FBC.key]&&S.lastPlaySig[FBC.key]!==sigF;
+    S.lastPlaySig[FBC.key]=sigF;
+    drivesHTML=drives.slice().reverse().map((d,ri)=>{
+      const di=drives.length-1-ri;
       const t=d.team||{};
       const res=d.displayResult||d.result||'';
-      const plays=(d.plays||[]).map(p=>`<div class="pbp-row ${p.scoringPlay?'score':''}">
+      const plays=(d.plays||[]).slice().reverse().map((p,pi)=>`<div class="pbp-row ${p.scoringPlay?'score':''} ${(freshF&&ri===0&&pi===0)?'fresh':''}">
   <div class="pbp-tick">${p.clock?.displayValue||''}</div>
   <div class="pbp-txt">${p.text||''}</div>
   ${p.scoringPlay?`<div class="pbp-sc">${p.awayScore}-${p.homeScore}</div>`:''}
 </div>`).join('');
-      return`<div class="drive">
-  <div class="drive-hd" onclick="toggleDrive(this)">
+      return`<div class="drive${S.openDrives.has(`${FBC.key}:${di}`)?' open':''}">
+  <div class="drive-hd" onclick="toggleDrive(this,${di})">
     <img src="${t.logos?.[0]?.href||fbLogoAbbr(t.abbreviation)}" onerror="this.style.display='none'">
     <div class="drive-desc"><b>${t.abbreviation||t.shortDisplayName||''} · ${d.description||''}</b>${d.start?.text?`from ${d.start.text}`:''}${d.start?.period?.number?` · Q${d.start.period.number}`:''}</div>
     <span class="drive-res ${driveResClass(res)}">${res||'—'}</span>
@@ -3395,10 +3427,85 @@ function renderFBGamecast(g,sum){
   }
   if(!liveHTML&&!lastHTML&&!drivesHTML){el.innerHTML='';return;}
   el.innerHTML=`<div class="gc-card">
-  <div class="prob-title">📻 Gamecast${drives.length?` <span style="font-size:10px;color:var(--text3);font-weight:400">${drives.length} drive${drives.length!==1?'s':''} · tap to expand</span>`:''}</div>
+  <div class="prob-title">📻 Gamecast${state==='in'?livePill():''}${state==='in'?`<span id="${FBC.p}LiveStampEl" class="live-stamp">updated just now</span>`:''}${drives.length?` <span style="font-size:10px;color:var(--text3);font-weight:400">${drives.length} drive${drives.length!==1?'s':''} · tap to expand</span>`:''}</div>
   ${liveHTML}${lastHTML}
   ${drivesHTML?`<div style="margin-top:8px">${drivesHTML}</div>`:''}
 </div>`;}
+
+// ══════════ LIVE GAMECAST UPDATES ══════════
+const LIVE_DETAIL_SEC=25;
+
+function isLiveMLB(g){return g?.status?.abstractGameState==='Live';}
+function isLiveFB(g){return g?.competitions?.[0]?.status?.type?.state==='in';}
+
+function livePill(){return'<span class="live-pill"><i></i>Live</span>';}
+function liveStamp(){
+  const t=S.liveDetailAt?Math.max(0,Math.round((Date.now()-S.liveDetailAt)/1000)):0;
+  return`<span class="live-stamp">updated ${t<5?'just now':t+'s ago'}</span>`;
+}
+
+function stopDetailLive(){
+  if(S.liveDetailInterval){clearInterval(S.liveDetailInterval);S.liveDetailInterval=null;}
+  S.liveDetailKind=null;
+}
+function startDetailLive(kind){
+  stopDetailLive();
+  S.liveDetailKind=kind;
+  S.liveDetailAt=Date.now();
+  S.liveDetailInterval=setInterval(()=>{
+    if(document.hidden)return;
+    S.liveDetailTick=(S.liveDetailTick||0)+1;
+    // refresh the "updated Xs ago" label every second without refetching
+    const st=document.getElementById(kind==='mlb'?'liveStampEl':FBC.p+'LiveStampEl');
+    if(st)st.outerHTML=liveStamp().replace('class="live-stamp"',`id="${kind==='mlb'?'liveStampEl':FBC.p+'LiveStampEl'}" class="live-stamp"`);
+    if(S.liveDetailTick%LIVE_DETAIL_SEC===0)refreshDetailLive();
+  },1000);
+}
+
+async function refreshDetailLive(){
+  const kind=S.liveDetailKind;
+  if(kind==='mlb'){
+    const game=S.selGame;if(!game)return;
+    const[ls,pbp,box]=await Promise.all([
+      api(`${MLB}/game/${game.gamePk}/linescore`),
+      api(`${MLB}/game/${game.gamePk}/playByPlay`),
+      api(`${MLB}/game/${game.gamePk}/boxscore`)
+    ]);
+    S.liveDetailAt=Date.now();
+    // keep hero score in sync
+    if(ls?.teams){
+      game.linescore=Object.assign(game.linescore||{},{teams:ls.teams,currentInningOrdinal:ls.currentInningOrdinal});
+      go(()=>renderHero(game,S.weather,S.parkFactor));
+    }
+    go(()=>renderGamecast(game,ls,pbp));
+    if(box?.teams&&S.box){S.box.box=box;S.box.ls=ls;go(()=>renderBoxscore());}
+    if(ls&&ls.currentInning&&game.status?.abstractGameState!=='Live')stopDetailLive();
+  } else if(kind==='nfl'||kind==='cfb'){
+    const g=FBS().games.find(x=>x.id===FBS().selId);if(!g)return;
+    const sum=await api(`${FBC.api}/summary?event=${g.id}`);
+    if(!sum)return;
+    S.liveDetailAt=Date.now();
+    // ESPN nests live state under header when present — treat as optional
+    const hc=sum.header?.competitions?.[0];
+    if(hc){
+      const comp=g.competitions?.[0];
+      if(comp){
+        if(hc.situation)comp.situation=hc.situation;
+        if(hc.status)comp.status=hc.status;
+        (hc.competitors||[]).forEach(c=>{
+          const t=(comp.competitors||[]).find(x=>x.homeAway===c.homeAway);
+          if(t&&c.score!==undefined)t.score=c.score;
+        });
+      }
+      const home=g.competitions?.[0]?.competitors?.find(c=>c.homeAway==='home');
+      const away=g.competitions?.[0]?.competitors?.find(c=>c.homeAway==='away');
+      go(()=>renderFBHero(g,home,away,g.competitions?.[0]?.venue,g.competitions?.[0]?.status?.type));
+    }
+    go(()=>renderFBGamecast(g,sum));
+    if(sum.boxscore&&FBS().box){FBS().box.bs=sum.boxscore;go(()=>renderFBBoxscore());}
+    if(!isLiveFB(g))stopDetailLive();
+  }
+}
 
 </script>
 </body>
