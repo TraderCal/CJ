@@ -873,7 +873,7 @@ const S={
   lineupTab:'away',sidebarOpen:false,todayTeamIds:new Set(),
   leaderData:{hr:[],hit:[],rbi:[]},
   theme:localStorage.getItem('mlb_theme')||'dark',
-  liveRefreshInterval:null,liveCountdown:30,
+  liveRefreshInterval:null,liveCountdown:90,
   parlay:JSON.parse(localStorage.getItem('mlb_parlay')||'[]'),
   parlayOpen:false,
   awayFormRaw:null,homeFormRaw:null,
@@ -914,20 +914,27 @@ function onGameChange(pk){
 }
 
 // ── Load Games ──
-async function loadGames(){
-  showStatus('⏳ Loading schedule…');
+// Live polling cadence (seconds). Auto-refreshes are quiet: no spinner and no
+// rebuild of the slate-level cards, which only change once a day.
+const LIVE_REFRESH_SEC=90;
+
+async function loadGames(auto){
+  if(!auto)showStatus('⏳ Loading schedule…');
   const[data,injData]=await Promise.all([
     api(`${MLB}/schedule?sportId=1&date=${S.date}&hydrate=team,linescore,probablePitcher,venue`),
     api(`https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/injuries`)
   ]);
-  hideStatus();
+  if(!auto)hideStatus();
   S.games=data?.dates?.[0]?.games||[];
   S.todayTeamIds=new Set(S.games.flatMap(g=>[g.teams?.away?.team?.id,g.teams?.home?.team?.id]));
   S.injuries={};
   (injData?.injuries||[]).forEach(t=>(t.injuries||[]).forEach(inj=>{if(inj.athlete?.id)S.injuries[inj.athlete.id]={status:inj.status};}));
-  renderGameGrid();populateSelects();go(()=>renderLeaderBadges());checkLiveGames();
-  go(async()=>loadDayBestHR());
-  go(async()=>loadTotalsScreener());
+  renderGameGrid();populateSelects();checkLiveGames();
+  if(!auto){
+    go(()=>renderLeaderBadges());
+    go(async()=>loadDayBestHR());
+    go(async()=>loadTotalsScreener());
+  }
 }
 
 function checkLiveGames(){
@@ -935,9 +942,18 @@ function checkLiveGames(){
   if(hasLive)startLiveRefresh();else stopLiveRefresh();
 }
 
-function startLiveRefresh(){if(S.liveRefreshInterval)return;$('liveDot').style.display='block';S.liveCountdown=30;updateCountdown();S.liveRefreshInterval=setInterval(()=>{S.liveCountdown--;updateCountdown();if(S.liveCountdown<=0){S.liveCountdown=30;loadGames();}},1000);}
+function startLiveRefresh(){
+  if(S.liveRefreshInterval)return;
+  $('liveDot').style.display='block';
+  S.liveCountdown=LIVE_REFRESH_SEC;updateCountdown();
+  S.liveRefreshInterval=setInterval(()=>{
+    if(document.hidden)return;              // don't burn refreshes on a background tab
+    S.liveCountdown--;updateCountdown();
+    if(S.liveCountdown<=0){S.liveCountdown=LIVE_REFRESH_SEC;loadGames(true);}
+  },1000);
+}
 function stopLiveRefresh(){if(S.liveRefreshInterval){clearInterval(S.liveRefreshInterval);S.liveRefreshInterval=null;}$('liveDot').style.display='none';$('refreshTimer').textContent='';}
-function updateCountdown(){$('refreshTimer').textContent=`${S.liveCountdown}s`;}
+function updateCountdown(){const c=S.liveCountdown;$('refreshTimer').textContent=c>=60?`${Math.floor(c/60)}:${String(c%60).padStart(2,'0')}`:`${c}s`;}
 
 // ── Share ──
 function openShareModal(){
