@@ -227,6 +227,56 @@ select option{background:#171d2a;color:#fff;}
 .share-fab:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(74,127,181,.7);}
 
 /* ── Share Modal ── */
+.gc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
+.gcast-live{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--surface2);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:12px 14px;margin:8px 0 4px;}
+.diamond{position:relative;width:74px;height:74px;flex-shrink:0;}
+.base{position:absolute;width:19px;height:19px;background:var(--surface3);border:1px solid var(--border2);transform:rotate(45deg);transition:all .25s;}
+.base.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 10px rgba(201,162,39,.5);}
+.base.b1{right:0;top:27px;}
+.base.b2{left:27px;top:0;}
+.base.b3{left:0;top:27px;}
+.base.hp{left:27px;bottom:0;top:auto;width:14px;height:14px;background:var(--surface3);}
+.gcast-state{display:flex;flex-direction:column;gap:3px;min-width:104px;}
+.gcast-inn{font-size:13px;font-weight:900;color:var(--gold);}
+.gcast-count{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.5px;}
+.gcast-outs{display:flex;gap:4px;align-items:center;font-size:10px;color:var(--text3);}
+.out-dot{width:8px;height:8px;border-radius:50%;background:var(--surface3);border:1px solid var(--border2);}
+.out-dot.on{background:var(--red);border-color:var(--red);}
+.gcast-mu{flex:1;min-width:150px;display:flex;flex-direction:column;gap:4px;}
+.gcast-mu-row{font-size:11px;color:var(--text2);}
+.gcast-mu-row b{color:var(--text);font-weight:700;}
+.gcast-last{background:rgba(201,162,39,.07);border-left:2px solid var(--gold);border-radius:0;padding:7px 10px;font-size:11.5px;line-height:1.5;margin-top:8px;color:var(--text2);}
+.gcast-last b{color:var(--gold);font-weight:800;display:block;font-size:9px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px;}
+.pbp-list{display:flex;flex-direction:column;gap:0;max-height:400px;overflow-y:auto;margin-top:8px;}
+.pbp-list::-webkit-scrollbar{width:6px;}
+.pbp-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.pbp-inn{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);padding:9px 2px 4px;position:sticky;top:0;background:var(--surface);}
+.pbp-row{display:flex;gap:9px;padding:6px 2px;border-bottom:1px solid rgba(30,38,53,.4);font-size:11.5px;line-height:1.45;}
+.pbp-row:last-child{border-bottom:none;}
+.pbp-row.score{background:rgba(201,162,39,.06);}
+.pbp-tick{flex:0 0 42px;font-size:9.5px;color:var(--text3);font-variant-numeric:tabular-nums;padding-top:1px;}
+.pbp-txt{flex:1;color:var(--text2);}
+.pbp-row.score .pbp-txt{color:var(--text);font-weight:600;}
+.pbp-sc{flex:0 0 auto;font-size:10px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;}
+.drive{border:1px solid var(--border);border-radius:9px;margin-bottom:6px;overflow:hidden;background:var(--surface2);}
+.drive-hd{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer;transition:background .15s;}
+.drive-hd:hover{background:var(--surface3);}
+.drive-hd img{width:19px;height:19px;object-fit:contain;flex-shrink:0;}
+.drive-desc{flex:1;min-width:0;font-size:11px;color:var(--text2);}
+.drive-desc b{display:block;color:var(--text);font-size:11.5px;font-weight:700;}
+.drive-res{font-size:9.5px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.res-td{background:rgba(78,168,138,.16);color:var(--green);}
+.res-fg{background:rgba(201,162,39,.14);color:var(--gold);}
+.res-turn{background:rgba(192,91,91,.14);color:var(--red);}
+.res-neutral{background:var(--surface3);color:var(--text3);}
+.drive-plays{display:none;padding:2px 11px 9px;border-top:1px solid var(--border);}
+.drive.open .drive-plays{display:block;}
+.drive-chev{font-size:10px;color:var(--text3);transition:transform .2s;flex-shrink:0;}
+.drive.open .drive-chev{transform:rotate(180deg);}
+.fieldbar{position:relative;height:26px;background:var(--surface3);border-radius:6px;overflow:hidden;margin:8px 0 4px;}
+.fieldbar-fill{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,rgba(201,162,39,.25),rgba(201,162,39,.5));}
+.fieldbar-mark{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);}
+.fieldbar-lbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text);letter-spacing:.4px;}
 .bx-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
 .bx-scroll{overflow-x:auto;}
 .bx-scroll::-webkit-scrollbar{height:6px;}
@@ -739,6 +789,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="matchupEl"></div>
       <div id="oddsEl"></div>
       <div id="evEl"></div>
+      <div id="gamecastEl"></div>
       <div id="highlightsEl"></div>
       <div id="boxEl"></div>
     </div>
@@ -759,6 +810,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="nflPropsEl"></div>
       <div id="nflCoverageEl"></div>
       <div id="nflMatchupEl"></div>
+      <div id="nflGamecastEl"></div>
       <div id="nflHighlightsEl"></div>
       <div id="nflBoxEl"></div>
     </div>
@@ -777,6 +829,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="cfbPropsEl"></div>
       <div id="cfbCoverageEl"></div>
       <div id="cfbMatchupEl"></div>
+      <div id="cfbGamecastEl"></div>
       <div id="cfbHighlightsEl"></div>
       <div id="cfbBoxEl"></div>
     </div>
@@ -1154,7 +1207,7 @@ async function selectGame(pk){
   go(()=>renderProb(game));
   $('pitchEl').innerHTML=pitchCard(game,'away',null,null,null)+pitchCard(game,'home',null,null,null);
   go(()=>renderMatchup(game));
-  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';$('boxEl').innerHTML='';S.box=null;
+  $('contextEl').innerHTML='';$('ouEl').innerHTML='';$('propsEl').innerHTML='';$('oddsEl').innerHTML='';$('advancedEl').innerHTML='';$('evEl').innerHTML='';$('seriesEl').innerHTML='';$('umpEl').innerHTML='';$('bullpenEl').innerHTML='';$('upsetEl').innerHTML='';$('highlightsEl').innerHTML='';$('boxEl').innerHTML='';$('gamecastEl').innerHTML='';S.box=null;
   const awId=game.teams?.away?.team?.id,hwId=game.teams?.home?.team?.id;
   const awPId=game.teams?.away?.probablePitcher?.id,hwPId=game.teams?.home?.probablePitcher?.id;
   S.parkFactor=PARK_FACTORS[game.venue?.id]||{name:game.venue?.name||'Unknown',hr:100,run:100,note:'Data unavailable'};
@@ -2305,7 +2358,7 @@ async function selectFBGame(id){
   const venue=comp?.venue;
   const status=comp?.status?.type;
   $(FBC.p+'MatchupEl').innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading team stats…</div>';
-  $(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';FBS().props=null;
+  $(FBC.p+'PropsEl').innerHTML='';$(FBC.p+'CoverageEl').innerHTML='';$(FBC.p+'GamecastEl').innerHTML='';FBS().props=null;
   renderFBHero(g,home,away,venue,status);
   renderFBOdds(home,away,odds);
   renderFBWinProb(home,away,odds);
@@ -3065,10 +3118,12 @@ async function loadBoxscore(game){
   const el=$('boxEl');if(!el)return;
   if(game.status?.abstractGameState==='Preview'){el.innerHTML='';return;}
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading box score…</div>';
-  const[box,ls]=await Promise.all([
+  const[box,ls,pbp]=await Promise.all([
     api(`${MLB}/game/${game.gamePk}/boxscore`),
-    api(`${MLB}/game/${game.gamePk}/linescore`)
+    api(`${MLB}/game/${game.gamePk}/linescore`),
+    api(`${MLB}/game/${game.gamePk}/playByPlay`)
   ]);
+  go(()=>renderGamecast(game,ls,pbp));
   if(!box?.teams){el.innerHTML='';return;}
   S.box={game,box,ls,tab:'away'};
   renderBoxscore();
@@ -3151,6 +3206,7 @@ async function loadFBBoxscore(g){
   if(state==='pre'){el.innerHTML='';return;}
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading box score…</div>';
   const sum=await api(`${FBC.api}/summary?event=${g.id}`);
+  go(()=>renderFBGamecast(g,sum));
   const bs=sum?.boxscore;
   if(!bs||(!bs.players?.length&&!bs.teams?.length)){el.innerHTML='';return;}
   FBS().box={g,bs,tab:'0'};
@@ -3204,6 +3260,144 @@ function renderFBBoxscore(){
   <div class="prob-title">📋 Box Score</div>
   ${teamHTML}
   ${players.length?`<div class="bx-tabs">${tabs}</div>${playerHTML}`:''}
+</div>`;}
+
+// ══════════ GAMECAST ══════════
+
+// ── MLB ──
+function renderGamecast(game,ls,pbp){
+  const el=$('gamecastEl');if(!el)return;
+  const plays=pbp?.allPlays||[];
+  const live=game.status?.abstractGameState==='Live';
+  if(!plays.length&&!live){el.innerHTML='';return;}
+  const awA=game.teams?.away?.team?.abbreviation||'AWY';
+  const hwA=game.teams?.home?.team?.abbreviation||'HME';
+
+  // Live situation panel
+  let liveHTML='';
+  if(live&&ls){
+    const off=ls.offense||{};
+    const on1=!!off.first,on2=!!off.second,on3=!!off.third;
+    const balls=ls.balls??0,strikes=ls.strikes??0,outs=ls.outs??0;
+    const half=ls.inningState||(ls.isTopInning?'Top':'Bottom');
+    const batTeam=ls.isTopInning?awA:hwA;
+    liveHTML=`<div class="gcast-live">
+  <div class="diamond">
+    <div class="base b2 ${on2?'on':''}"></div>
+    <div class="base b3 ${on3?'on':''}"></div>
+    <div class="base b1 ${on1?'on':''}"></div>
+    <div class="base hp"></div>
+  </div>
+  <div class="gcast-state">
+    <div class="gcast-inn">${half} ${ls.currentInningOrdinal||ls.currentInning||''}</div>
+    <div class="gcast-count">${balls}-${strikes}</div>
+    <div class="gcast-outs">${[0,1,2].map(i=>`<span class="out-dot ${i<outs?'on':''}"></span>`).join('')}<span style="margin-left:3px">${outs} out${outs===1?'':'s'}</span></div>
+  </div>
+  <div class="gcast-mu">
+    <div class="gcast-mu-row">🏏 AB (${batTeam}): <b>${off.batter?.fullName||'—'}</b></div>
+    <div class="gcast-mu-row">⚾ P: <b>${ls.defense?.pitcher?.fullName||'—'}</b></div>
+    ${off.onDeck?.fullName?`<div class="gcast-mu-row" style="font-size:10px;color:var(--text3)">On deck: ${off.onDeck.fullName}</div>`:''}
+  </div>
+</div>`;
+  }
+
+  // Last play
+  const lastPlay=[...plays].reverse().find(p=>p.result?.description);
+  const lastHTML=lastPlay?`<div class="gcast-last"><b>Last play</b>${lastPlay.result.description}</div>`:'';
+
+  // Play-by-play, newest first, grouped by half-inning
+  let pbpHTML='',curKey='';
+  [...plays].reverse().forEach(p=>{
+    const a=p.about||{},r=p.result||{};
+    if(!r.description)return;
+    const key=`${a.halfInning}-${a.inning}`;
+    if(key!==curKey){
+      curKey=key;
+      const side=a.isTopInning?awA:hwA;
+      pbpHTML+=`<div class="pbp-inn">${(a.halfInning||'').replace(/^./,c=>c.toUpperCase())} ${a.inning} · ${side} batting</div>`;
+    }
+    const scored=a.isScoringPlay;
+    pbpHTML+=`<div class="pbp-row ${scored?'score':''}">
+  <div class="pbp-tick">${p.count?`${p.count.balls}-${p.count.strikes}`:''}</div>
+  <div class="pbp-txt">${r.description}</div>
+  ${scored?`<div class="pbp-sc">${r.awayScore}-${r.homeScore}</div>`:''}
+</div>`;
+  });
+
+  el.innerHTML=`<div class="gc-card">
+  <div class="prob-title">📻 Gamecast</div>
+  ${liveHTML}${lastHTML}
+  ${pbpHTML?`<div class="pbp-list">${pbpHTML}</div>`:''}
+</div>`;}
+
+// ── Football (NFL + CFB) ──
+function toggleDrive(elm){elm.parentElement.classList.toggle('open');}
+
+function driveResClass(r){
+  const t=String(r||'').toUpperCase();
+  if(/TD|TOUCHDOWN/.test(t))return'res-td';
+  if(/FG|FIELD GOAL/.test(t))return'res-fg';
+  if(/INT|FUMBLE|DOWNS|SAF/.test(t))return'res-turn';
+  return'res-neutral';
+}
+
+function renderFBGamecast(g,sum){
+  const el=$(FBC.p+'GamecastEl');if(!el)return;
+  const comp=g.competitions?.[0];
+  const state=comp?.status?.type?.state;
+  if(state==='pre'){el.innerHTML='';return;}
+  const drivesRaw=sum?.drives;
+  const drives=[...(drivesRaw?.previous||[])];
+  if(drivesRaw?.current)drives.push(drivesRaw.current);
+  const sit=comp?.situation;
+
+  // Live situation
+  let liveHTML='';
+  if(state==='in'&&sit){
+    const posTeam=(comp.competitors||[]).find(c=>c.team?.id===sit.possession)?.team;
+    const dd=sit.shortDownDistanceText||sit.downDistanceText||'';
+    const spot=sit.possessionText||'';
+    const pct=Math.max(0,Math.min(100,sit.yardLine??50));
+    liveHTML=`<div class="gcast-live" style="display:block">
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    ${posTeam?`<img src="${posTeam.logo||fbLogoAbbr(posTeam.abbreviation)}" style="width:22px;height:22px;object-fit:contain" onerror="this.style.display='none'">`:''}
+    <span style="font-size:13px;font-weight:900;color:var(--gold)">${posTeam?.abbreviation||''} ball</span>
+    ${dd?`<span style="font-size:12px;font-weight:700">${dd}</span>`:''}
+    ${spot?`<span style="font-size:11px;color:var(--text3)">at ${spot}</span>`:''}
+    <span style="margin-left:auto;font-size:11px;color:var(--text2)">${comp.status?.type?.shortDetail||''}</span>
+  </div>
+  <div class="fieldbar"><div class="fieldbar-fill" style="width:${pct}%"></div><div class="fieldbar-mark" style="left:${pct}%"></div><div class="fieldbar-lbl">${spot||dd||''}</div></div>
+</div>`;
+  }
+  const lastHTML=sit?.lastPlay?.text?`<div class="gcast-last"><b>Last play</b>${sit.lastPlay.text}</div>`:'';
+
+  // Drives, newest first
+  let drivesHTML='';
+  if(drives.length){
+    drivesHTML=drives.slice().reverse().map(d=>{
+      const t=d.team||{};
+      const res=d.displayResult||d.result||'';
+      const plays=(d.plays||[]).map(p=>`<div class="pbp-row ${p.scoringPlay?'score':''}">
+  <div class="pbp-tick">${p.clock?.displayValue||''}</div>
+  <div class="pbp-txt">${p.text||''}</div>
+  ${p.scoringPlay?`<div class="pbp-sc">${p.awayScore}-${p.homeScore}</div>`:''}
+</div>`).join('');
+      return`<div class="drive">
+  <div class="drive-hd" onclick="toggleDrive(this)">
+    <img src="${t.logos?.[0]?.href||fbLogoAbbr(t.abbreviation)}" onerror="this.style.display='none'">
+    <div class="drive-desc"><b>${t.abbreviation||t.shortDisplayName||''} · ${d.description||''}</b>${d.start?.text?`from ${d.start.text}`:''}${d.start?.period?.number?` · Q${d.start.period.number}`:''}</div>
+    <span class="drive-res ${driveResClass(res)}">${res||'—'}</span>
+    ${plays?'<span class="drive-chev">▼</span>':''}
+  </div>
+  ${plays?`<div class="drive-plays">${plays}</div>`:''}
+</div>`;
+    }).join('');
+  }
+  if(!liveHTML&&!lastHTML&&!drivesHTML){el.innerHTML='';return;}
+  el.innerHTML=`<div class="gc-card">
+  <div class="prob-title">📻 Gamecast${drives.length?` <span style="font-size:10px;color:var(--text3);font-weight:400">${drives.length} drive${drives.length!==1?'s':''} · tap to expand</span>`:''}</div>
+  ${liveHTML}${lastHTML}
+  ${drivesHTML?`<div style="margin-top:8px">${drivesHTML}</div>`:''}
 </div>`;}
 
 </script>
