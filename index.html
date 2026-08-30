@@ -774,6 +774,7 @@ select option{background:#171d2a;color:#fff;}
     <button class="sport-tab active" data-sport="mlb" onclick="switchSport('mlb')">⚾ MLB</button>
     <button class="sport-tab" data-sport="nfl" onclick="switchSport('nfl')">🏈 NFL</button>
     <button class="sport-tab" data-sport="cfb" onclick="switchSport('cfb')">🎓 CFB</button>
+    <button class="sport-tab" data-sport="nba" onclick="switchSport('nba')">🏀 NBA</button>
   </div>
 
   <!-- MLB Content -->
@@ -839,6 +840,25 @@ select option{background:#171d2a;color:#fff;}
       <div id="cfbGamecastEl"></div>
       <div id="cfbHighlightsEl"></div>
       <div id="cfbBoxEl"></div>
+    </div>
+  </div>
+  <div id="nbaContent" class="hidden">
+    <div id="nbaControlsEl"></div>
+    <div id="nbaStatusEl"></div>
+    <div class="nfl-grid" id="nbaGrid"></div>
+    <div class="nfl-detail" id="nbaDetail">
+      <div id="nbaHeroEl"></div>
+      <div id="nbaOddsEl"></div>
+      <div id="nbaWPEl"></div>
+      <div id="nbaOUEl"></div>
+      <div id="nbaWeatherEl"></div>
+      <div id="nbaUpsetEl"></div>
+      <div id="nbaPropsEl"></div>
+      <div id="nbaCoverageEl"></div>
+      <div id="nbaMatchupEl"></div>
+      <div id="nbaGamecastEl"></div>
+      <div id="nbaHighlightsEl"></div>
+      <div id="nbaBoxEl"></div>
     </div>
   </div>
 </main>
@@ -944,7 +964,8 @@ const S={
   sport:'mlb',
   fb:{
     nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
-    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null}
+    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
+    nba:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null,date:null}
   }
 };
 
@@ -2195,11 +2216,16 @@ const FB={
   cfb:{key:'cfb',p:'cfb',label:'College Football',emptyIcon:'🏈',
     api:'https://site.api.espn.com/apis/site/v2/sports/football/college-football',
     ath:'https://site.web.api.espn.com/apis/common/v3/sports/football/college-football/athletes',
-    groups:'80',coverage:false,ranks:true,conf:true}
+    groups:'80',coverage:false,ranks:true,conf:true},
+  nba:{key:'nba',p:'nba',label:'NBA',emptyIcon:'🏀',
+    api:'https://site.api.espn.com/apis/site/v2/sports/basketball/nba',
+    ath:'https://site.web.api.espn.com/apis/common/v3/sports/basketball/nba/athletes',
+    groups:'',coverage:false,ranks:false,conf:false,
+    dateMode:true,flatPlays:true,noWeather:true,hoops:true}
 };
 let FBC=FB.nfl;
 function FBS(){return S.fb[FBC.key];}
-function isFB(sp){return sp==='nfl'||sp==='cfb';}
+function isFB(sp){return sp==='nfl'||sp==='cfb'||sp==='nba';}
 function fbQS(extra){const g=FBC.groups?`&groups=${FBC.groups}`:'';return extra+g;}
 // CFB has no abbr-based logo pattern — read it off the competitor when present
 function fbLogo(c,abbr){
@@ -2219,6 +2245,7 @@ function switchSport(sport){
   $('mlbContent').classList.toggle('hidden',sport!=='mlb');
   $('nflContent').classList.toggle('hidden',sport!=='nfl');
   $('cfbContent').classList.toggle('hidden',sport!=='cfb');
+  $('nbaContent').classList.toggle('hidden',sport!=='nba');
   document.querySelectorAll('.sport-tab').forEach(b=>b.classList.toggle('active',b.dataset.sport===sport));
   // Date picker is MLB-only — football uses its own week selector
   document.querySelectorAll('#datePicker,#datePickerM').forEach(d=>{
@@ -2233,6 +2260,7 @@ async function initFB(){
   const el=$(FBC.p+'Grid');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading NFL schedule…</div>';
   const data=await api(`${FBC.api}/scoreboard${FBC.groups?'?groups='+FBC.groups:''}`);
+  if(FBC.dateMode&&data)FBS().date=FBS().date||today();
   if(!data){el.innerHTML='<div class="no-games"><div style="font-size:48px">🏈</div><div>Unable to load NFL data</div></div>';return;}
   FBS().calendar=data?.leagues?.[0]?.calendar||[];
   FBS().year=data?.season?.year||new Date().getFullYear();
@@ -2249,7 +2277,9 @@ async function loadFBWeek(){
   const el=$(FBC.p+'Grid');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading games…</div>';
   FBS().selId=null;$(FBC.p+'Detail').classList.remove('on');
-  const data=await api(`${FBC.api}/scoreboard?`+fbQS(`seasontype=${FBS().seasonType}&week=${FBS().week}&dates=${FBS().year}`));
+  const data=await api(FBC.dateMode
+    ? `${FBC.api}/scoreboard?dates=${(FBS().date||today()).replace(/-/g,'')}`
+    : `${FBC.api}/scoreboard?`+fbQS(`seasontype=${FBS().seasonType}&week=${FBS().week}&dates=${FBS().year}`));
   FBS().games=data?.events||[];
   renderFBControls();
   renderFBGrid();
@@ -2272,10 +2302,36 @@ function fbStepWeek(dir){
   FBS().week=entries[ni].value;
   loadFBWeek();
 }
+function onFBDate(v){FBS().date=v;loadFBWeek();}
+function fbStepDay(dir){
+  const d=new Date((FBS().date||today())+'T12:00:00');
+  d.setDate(d.getDate()+dir);
+  FBS().date=d.toISOString().slice(0,10);
+  loadFBWeek();
+}
 function toggleFBUpcoming(){FBS().upcomingOnly=!FBS().upcomingOnly;renderFBControls();renderFBGrid();}
 
 function renderFBControls(){
   const el=$(FBC.p+'ControlsEl');if(!el)return;
+  if(FBC.dateMode){
+    const d=FBS().date||today();
+    const total=FBS().games.length;
+    const upcoming=FBS().games.filter(g=>g.competitions?.[0]?.status?.type?.state!=='post').length;
+    const pretty=new Date(d+'T12:00:00').toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'});
+    el.innerHTML=`<div class="nfl-controls">
+  <div class="nfl-ctrl"><span class="nfl-ctrl-lbl">Date</span>
+    <input type="date" value="${d}" onchange="onFBDate(this.value)" style="background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;"></div>
+  <div class="nfl-week-nav">
+    <button class="nfl-nav-btn" onclick="fbStepDay(-1)" title="Previous day">‹</button>
+    <button class="nfl-nav-btn" onclick="fbStepDay(1)" title="Next day">›</button>
+  </div>
+  <div class="nfl-week-label">${pretty}</div>
+  <div class="nfl-toggle${FBS().upcomingOnly?' on':''}" onclick="toggleFBUpcoming()">${FBS().upcomingOnly?'✅':'⬜'} Upcoming only</div>
+  <button class="nfl-nav-btn" onclick="loadFBWeek()" title="Refresh" style="width:auto;padding:0 10px">🔄</button>
+  <div class="nfl-count">${total} game${total!==1?'s':''}${upcoming!==total?` · ${upcoming} upcoming`:''}</div>
+</div>`;
+    return;
+  }
   if(!FBS().calendar.length){el.innerHTML='';return;}
   const stOpts=FBS().calendar.filter(c=>c.entries?.length).map(c=>`<option value="${c.value}"${c.value===FBS().seasonType?' selected':''}>${c.label}</option>`).join('');
   const st=FBS().calendar.find(c=>c.value===FBS().seasonType);
@@ -2455,7 +2511,11 @@ function renderFBOU(odds,weather,venue){
   const factors=[],ts_cls=d=>`ts-factor ts-factor-${d}`;
   let score=0;
   if(ou){if(ou>=50){score+=2;factors.push({l:`High total (${ou})`,d:'over'});}else if(ou<=38){score-=2;factors.push({l:`Low total set (${ou})`,d:'under'});}}
-  if(!indoor&&weather){
+  if(FBC.noWeather){
+    if(ou){if(ou>=235){score+=2;factors.push({l:`High total (${ou}) — projected up-tempo game`,d:'over'});}
+      else if(ou<=215){score-=2;factors.push({l:`Low total (${ou}) — grind-it-out projection`,d:'under'});}}
+    else factors.push({l:'No total posted yet',d:'neutral'});
+  } else if(!indoor&&weather){
     const tmp=weather.temperature||70,wnd=weather.wind?.speed||0;
     if(tmp>82){score+=2;factors.push({l:`${tmp}°F — warm weather boosts scoring`,d:'over'});}
     else if(tmp<38){score-=3;factors.push({l:`${tmp}°F — cold suppresses scoring/kicking`,d:'under'});}
@@ -2477,6 +2537,7 @@ function renderFBOU(odds,weather,venue){
   </div>`;}
 
 function renderFBWeather(weather,venue){
+  if(FBC.noWeather){$(FBC.p+'WeatherEl').innerHTML='';return;}
   if(venue?.indoor){$(FBC.p+'WeatherEl').innerHTML=`<div class="prob-card"><div class="prob-title">🏟️ Venue</div><div style="font-size:13px;color:var(--text2);margin-top:6px">Indoor dome — no weather impact</div></div>`;return;}
   if(!weather){$(FBC.p+'WeatherEl').innerHTML='';return;}
   const tmp=weather.temperature,wnd=weather.wind?.speed,dir=weather.wind?.direction?.displayValue||'',desc=weather.displayValue||'';
@@ -2664,6 +2725,7 @@ function cvGrade(p,arch,scheme,oppPassDefRating){
 function renderFBCoverage(){
   const el=$(FBC.p+'CoverageEl');if(!el)return;
   const d=FBS().props;if(!d){el.innerHTML='';return;}
+  if(FBC.hoops){el.innerHTML='';return;}
   if(!FBC.coverage){renderFBPassMatchup(d);return;}
   const awScheme=cvScheme(d.awAbbr),hwScheme=cvScheme(d.hwAbbr);
   // away receivers face HOME defense scheme; home receivers face AWAY defense
@@ -2754,6 +2816,7 @@ function parseSpread(details){
 }
 
 async function loadFBProps(away,home,awTeamStats,hwTeamStats,odds){
+  if(FBC.hoops)return loadHoopsProps(away,home,odds);
   const el=$(FBC.p+'PropsEl');if(!el)return;
   el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Building player projections…</div>';
   const awId=away?.team?.id,hwId=home?.team?.id;
@@ -2903,9 +2966,15 @@ function renderFBProps(){
   else if(tab==='pass'){list=all.filter(p=>p.projPassYds>20).sort((a,b)=>b.projPassYds-a.projPassYds);}
   else if(tab==='rush'){list=all.filter(p=>p.projRushYds>10).sort((a,b)=>b.projRushYds-a.projRushYds).slice(0,10);}
   else if(tab==='rec'){list=all.filter(p=>p.projRecYds>10).sort((a,b)=>b.projRecYds-a.projRecYds).slice(0,10);}
+  else if(tab==='pts'){list=[...all].sort((a,b)=>b.projPts-a.projPts).slice(0,10);}
+  else if(tab==='reb'){list=[...all].sort((a,b)=>b.projReb-a.projReb).slice(0,10);}
+  else if(tab==='ast'){list=[...all].sort((a,b)=>b.projAst-a.projAst).slice(0,10);}
+  else if(tab==='tpm'){list=[...all].sort((a,b)=>b.projTpm-a.projTpm).slice(0,10);}
   else list=all.slice(0,10);
 
-  const tabs=[['all','⭐ Top Plays'],['td','🏈 Anytime TD'],['pass','🎯 Passing'],['rush','🏃 Rushing'],['rec','🙌 Receiving'],['away',d.awAbbr],['home',d.hwAbbr]]
+  const tabs=(d.hoops
+    ?[['all','⭐ Top Plays'],['pts','🏀 Points'],['reb','🛟 Rebounds'],['ast','🎯 Assists'],['tpm','🎪 Threes'],['away',d.awAbbr],['home',d.hwAbbr]]
+    :[['all','⭐ Top Plays'],['td','🏈 Anytime TD'],['pass','🎯 Passing'],['rush','🏃 Rushing'],['rec','🙌 Receiving'],['away',d.awAbbr],['home',d.hwAbbr]])
     .map(([k,l])=>`<button class="np-tab${tab===k?' active':''}" onclick="setFBPropTab('${k}')">${l}</button>`).join('');
 
   let body;
@@ -2914,16 +2983,16 @@ function renderFBProps(){
     const abbr=tab==='away'?d.awAbbr:d.hwAbbr;
     const imp=tab==='away'?d.awImplied:d.hwImplied;
     body=`<div class="np-team-hdr"><img src="${fbLogoAbbr(abbr)}" onerror="this.style.display='none'">${abbr} Projections<span class="np-implied">Implied ${imp.toFixed(1)} pts</span></div>
-    <div class="np-grid">${list.map(propCard).join('')}</div>`;
+    <div class="np-grid">${list.map(d.hoops?hoopsPropCard:propCard).join('')}</div>`;
   } else {
-    body=`<div class="np-grid">${list.map(propCard).join('')}</div>`;
+    body=`<div class="np-grid">${list.map(d.hoops?hoopsPropCard:propCard).join('')}</div>`;
   }
   if(!list.length)body='<div style="font-size:11px;color:var(--text3);padding:8px 0">No players match this filter</div>';
 
   el.innerHTML=`<div class="props-card">
   <div class="prob-title">🎯 Player Prop Projections</div>
   <div style="font-size:11px;color:var(--text3);margin-bottom:2px">
-    Projections adjust season per-game rates for Vegas implied totals (${d.awAbbr} ${d.awImplied.toFixed(1)} · ${d.hwAbbr} ${d.hwImplied.toFixed(1)}) and opponent defense
+    Projections adjust season per-game rates for Vegas implied totals (${d.awAbbr} ${d.awImplied.toFixed(1)} · ${d.hwAbbr} ${d.hwImplied.toFixed(1)})${d.hoops?'':' and opponent defense'}
   </div>
   <div class="np-tabs">${tabs}</div>
   ${body}
@@ -3374,6 +3443,7 @@ function renderFBGamecast(g,sum){
   const comp=g.competitions?.[0];
   const state=comp?.status?.type?.state;
   if(state==='pre'){el.innerHTML='';return;}
+  if(FBC.flatPlays)return renderHoopsGamecast(g,sum,el,state);
   const drivesRaw=sum?.drives;
   const drives=[...(drivesRaw?.previous||[])];
   if(drivesRaw?.current)drives.push(drivesRaw.current);
@@ -3505,6 +3575,152 @@ async function refreshDetailLive(){
     if(sum.boxscore&&FBS().box){FBS().box.bs=sum.boxscore;go(()=>renderFBBoxscore());}
     if(!isLiveFB(g))stopDetailLive();
   }
+}
+
+// ── Basketball gamecast: flat play list grouped by period ──
+function renderHoopsGamecast(g,sum,el,state){
+  const plays=sum?.plays||[];
+  const comp=g.competitions?.[0];
+  const status=comp?.status;
+  const away=(comp?.competitors||[]).find(c=>c.homeAway==='away');
+  const home=(comp?.competitors||[]).find(c=>c.homeAway==='home');
+  const live=state==='in';
+
+  let liveHTML='';
+  if(live){
+    liveHTML=`<div class="gcast-live" style="display:block">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:13px;font-weight:900;color:var(--gold)">${status?.type?.shortDetail||status?.type?.detail||'In progress'}</span>
+    <span style="font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;margin-left:auto">
+      ${away?.team?.abbreviation||''} ${away?.score??0} — ${home?.score??0} ${home?.team?.abbreviation||''}</span>
+  </div>
+</div>`;
+  }
+
+  const last=[...plays].reverse().find(p=>p.text);
+  const lastHTML=last?`<div class="gcast-last"><b>Last play</b>${last.text}</div>`:'';
+
+  const sig=last?`${last.id||last.sequenceNumber||''}-${last.text||''}`:'';
+  const fresh=live&&sig&&S.lastPlaySig[FBC.key]&&S.lastPlaySig[FBC.key]!==sig;
+  S.lastPlaySig[FBC.key]=sig;
+
+  let listHTML='',curP='',first=true;
+  [...plays].reverse().forEach(p=>{
+    if(!p.text)return;
+    const per=p.period?.displayValue||(p.period?.number?`Period ${p.period.number}`:'');
+    if(per!==curP){curP=per;listHTML+=`<div class="pbp-inn">${per}</div>`;}
+    const isFresh=first&&fresh;first=false;
+    listHTML+=`<div class="pbp-row ${p.scoringPlay?'score':''} ${isFresh?'fresh':''}">
+  <div class="pbp-tick">${p.clock?.displayValue||''}</div>
+  <div class="pbp-txt">${p.text}</div>
+  ${p.scoringPlay?`<div class="pbp-sc">${p.awayScore}-${p.homeScore}</div>`:''}
+</div>`;
+  });
+
+  if(!liveHTML&&!lastHTML&&!listHTML){el.innerHTML='';return;}
+  let keep=0;try{keep=el.querySelector?.('.pbp-list')?.scrollTop||0;}catch(e){}
+  el.innerHTML=`<div class="gc-card">
+  <div class="prob-title">📻 Gamecast${live?livePill():''}${live?`<span id="${FBC.p}LiveStampEl" class="live-stamp">updated just now</span>`:''}${plays.length?` <span style="font-size:10px;color:var(--text3);font-weight:400">${plays.length} plays</span>`:''}</div>
+  ${liveHTML}${lastHTML}
+  ${listHTML?`<div class="pbp-list">${listHTML}</div>`:''}
+</div>`;
+  if(keep){try{const l=el.querySelector?.('.pbp-list');if(l)l.scrollTop=keep;}catch(e){}}
+}
+
+// ══════════ NBA PLAYER PROPS ══════════
+const HOOPS_POS=new Set(['PG','SG','SF','PF','C','G','F','G-F','F-G','F-C','C-F']);
+
+async function loadHoopsProps(away,home,odds){
+  const el=$(FBC.p+'PropsEl');if(!el)return;
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Building player projections…</div>';
+  const awId=away?.team?.id,hwId=home?.team?.id;
+  const awAbbr=away?.team?.abbreviation||'AWY',hwAbbr=home?.team?.abbreviation||'HME';
+
+  // Vegas implied team totals
+  const ou=parseFloat(odds?.overUnder)||225;
+  const sp=parseSpread(odds?.details);
+  let awSp=0,hwSp=0;
+  if(sp){ if(sp.abbr===hwAbbr){hwSp=sp.line;awSp=-sp.line;} else if(sp.abbr===awAbbr){awSp=sp.line;hwSp=-sp.line;} }
+  const awImp=Math.max(80,ou/2-awSp/2), hwImp=Math.max(80,ou/2-hwSp/2);
+  const LG_AVG=113.0;
+
+  const[awR,hwR]=await Promise.all([api(`${FBC.api}/teams/${awId}/roster`),api(`${FBC.api}/teams/${hwId}/roster`)]);
+  const pick=d=>{
+    const all=(d?.athletes||[]).flatMap(g=>g.items||g.athletes||[g]).filter(Boolean);
+    const flat=all.length?all:(d?.athletes||[]);
+    return flat.filter(p=>p&&p.id).slice(0,15);
+  };
+  const awP=pick(awR),hwP=pick(hwR);
+  if(!awP.length&&!hwP.length){el.innerHTML='';return;}
+
+  const fetchAll=ps=>Promise.all(ps.map(p=>api(`${FBC.ath}/${p.id}/stats`).catch(()=>null)));
+  const[awS,hwS]=await Promise.all([fetchAll(awP),fetchAll(hwP)]);
+
+  const build=(players,statsArr,teamAbbr,oppAbbr,implied)=>{
+    const pace=Math.min(1.25,Math.max(0.80,implied/LG_AVG));
+    const out=[];
+    players.forEach((p,i)=>{
+      const d=statsArr[i];if(!d)return;
+      // ESPN's basketball "averages" category is already per-game.
+      // 3PT is a combined "made-attempted" string (e.g. "1.3-4.1"); parseFloat takes the made side.
+      const gp=athStat(d,'averages','gamesPlayed');
+      const pts=athStat(d,'averages','avgPoints');
+      const reb=athStat(d,'averages','avgRebounds');
+      const ast=athStat(d,'averages','avgAssists');
+      const tpm=athStat(d,'averages','avgThreePointFieldGoalsMade-avgThreePointFieldGoalsAttempted');
+      const min=athStat(d,'averages','avgMinutes');
+      if(pts<3&&reb<2&&ast<1)return;
+      const season=athSeasonYear(d);
+      const projPts=pts*pace, projReb=reb*(pace*0.6+0.4), projAst=ast*pace, projTpm=tpm*pace;
+      const pra=projPts+projReb+projAst;
+      out.push({id:p.id,name:p.displayName||p.fullName||'?',pos:p.position?.abbreviation||'',
+        teamAbbr,oppAbbr,season,gp,min,
+        headshot:p.headshot?.href||'',jersey:p.jersey||'',
+        injured:(p.injuries||[]).length>0,injStatus:p.injuries?.[0]?.status||'',
+        pts,reb,ast,tpm,projPts,projReb,projAst,projTpm,pra,score:pra});
+    });
+    return out.sort((a,b)=>b.score-a.score);
+  };
+  const awProps=build(awP,awS,awAbbr,hwAbbr,awImp);
+  const hwProps=build(hwP,hwS,hwAbbr,awAbbr,hwImp);
+  if(!awProps.length&&!hwProps.length){
+    el.innerHTML='<div class="props-card"><div class="prob-title">🎯 Player Props</div><div style="font-size:11px;color:var(--text3);margin-top:6px">No season averages available for these rosters yet.</div></div>';
+    return;
+  }
+  FBS().props={away:awProps.slice(0,8),home:hwProps.slice(0,8),awAbbr,hwAbbr,
+    awImplied:awImp,hwImplied:hwImp,ou,hoops:true};
+  renderFBProps();
+}
+
+function hoopsPropCard(p){
+  const row=(lbl,val,avg)=>{
+    const lean=avg>0?(val>avg*1.04?'up':val<avg*0.96?'down':null):null;
+    return`<div class="np-prop-row"><span class="np-prop-lbl">${lbl}</span>
+  <span class="np-prop-val">${val.toFixed(1)}</span>
+  ${lean?`<span class="np-lean np-lean-${lean}">${lean==='up'?'▲':'▼'}</span>`:''}
+  <span class="np-prop-avg">avg ${avg.toFixed(1)}</span></div>`;
+  };
+  const rows=[
+    p.projPts>=3?row('Points',p.projPts,p.pts):'',
+    p.projReb>=1.5?row('Rebounds',p.projReb,p.reb):'',
+    p.projAst>=1?row('Assists',p.projAst,p.ast):'',
+    p.projTpm>=0.5?row('3-Pointers',p.projTpm,p.tpm):''
+  ].filter(Boolean).join('');
+  const elite=p.pra>=35;
+  return`<div class="np-card${elite?' np-elite':''}">
+  <div class="np-head">
+    ${p.headshot?`<img class="np-hs" src="${p.headshot}" onerror="this.style.visibility='hidden'" alt="">`:'<div class="np-hs"></div>'}
+    <div class="np-name-block">
+      <div class="np-name">${p.name}${p.injured?`<span class="np-inj">${p.injStatus||'INJ'}</span>`:''}</div>
+      <div class="np-sub">${p.pos}${p.jersey?` #${p.jersey}`:''} · ${p.teamAbbr} vs ${p.oppAbbr}${p.min?` · ${p.min.toFixed(0)} mpg`:''}</div>
+    </div>
+    <div class="np-td-badge">
+      <div class="np-td-val" style="color:var(--gold)">${p.pra.toFixed(1)}</div>
+      <div class="np-td-lbl">Proj P+R+A</div>
+    </div>
+  </div>
+  <div class="np-props">${rows||'<div style="font-size:10px;color:var(--text3);padding:3px">Limited role</div>'}</div>
+</div>`;
 }
 
 </script>
