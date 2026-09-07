@@ -234,6 +234,41 @@ select option{background:#171d2a;color:#fff;}
 .live-stamp{font-size:9.5px;color:var(--text3);font-weight:400;margin-left:6px;}
 .pbp-row.fresh{animation:playIn .7s ease;}
 .gcast-live.pulse{animation:playIn .5s ease;}
+/* ── MLB sub-tabs + Favorites ── */
+.mlb-subtabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px;width:fit-content;margin-bottom:12px;}
+.mlb-subtab{padding:6px 16px;font-size:12px;font-weight:800;border:none;background:none;color:var(--text2);cursor:pointer;border-radius:8px;transition:all .18s;letter-spacing:.3px;}
+.mlb-subtab.active{background:rgba(201,162,39,.14);color:var(--gold);}
+.fav-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:8px;overflow:hidden;}
+.fav-hd{padding:11px 14px;cursor:pointer;transition:background .15s;border-bottom:1px solid transparent;}
+.fav-hd:hover{background:var(--surface2);}
+.fav-card.open .fav-hd{border-bottom-color:var(--border);}
+.fav-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;font-weight:900;}
+.fav-title img{width:20px;height:20px;object-fit:contain;}
+.fav-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.fav-chip2{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);white-space:nowrap;}
+.fav-chip2.hot{background:rgba(192,91,91,.13);border-color:rgba(192,91,91,.3);color:var(--red);}
+.fav-chip2.cold{background:rgba(74,127,181,.13);border-color:rgba(74,127,181,.3);color:var(--blue);}
+.fav-chev{float:right;font-size:11px;color:var(--text3);transition:transform .2s;}
+.fav-card.open .fav-chev{transform:rotate(180deg);}
+.fav-body{display:none;padding:4px 14px 14px;}
+.fav-card.open .fav-body{display:block;}
+.fav-pitch{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:0 9px 9px 0;padding:9px 12px;margin:10px 0 6px;}
+.fav-pitch-nm{font-size:12.5px;font-weight:900;}
+.fav-pitch-line{font-size:11px;color:var(--text2);margin-top:3px;line-height:1.6;}
+.fav-pitch-line b{color:var(--gold);font-weight:800;}
+.fav-mix{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.fav-mix span{font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:9px;background:rgba(0,0,0,.22);border:1px solid var(--border);color:var(--text3);}
+.fav-hand{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--gold);text-transform:uppercase;margin:10px 0 4px;}
+.fav-bat{display:flex;gap:9px;padding:7px 0;border-bottom:1px solid rgba(30,38,53,.45);}
+.fav-bat:last-child{border-bottom:none;}
+.fav-bat-rank{font-size:10px;color:var(--text3);width:15px;flex-shrink:0;padding-top:2px;font-variant-numeric:tabular-nums;}
+.fav-bat-main{flex:1;min-width:0;}
+.fav-bat-nm{font-size:12px;font-weight:800;}
+.fav-bat-st{font-size:10.5px;color:var(--text2);margin-top:2px;font-variant-numeric:tabular-nums;}
+.fav-bat-st b{color:var(--gold);font-weight:800;}
+.fav-bat-vs{font-size:10px;color:var(--text3);margin-top:2px;font-variant-numeric:tabular-nums;}
+.fav-bat-vs em{color:var(--green);font-style:normal;font-weight:700;}
+.fav-src{font-size:9px;color:var(--text3);line-height:1.55;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
 .gc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px;}
 .gcast-live{display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:var(--surface2);border:1px solid rgba(201,162,39,.25);border-radius:12px;padding:12px 14px;margin:8px 0 4px;}
 .diamond{position:relative;width:74px;height:74px;flex-shrink:0;}
@@ -779,6 +814,12 @@ select option{background:#171d2a;color:#fff;}
 
   <!-- MLB Content -->
   <div id="mlbContent">
+    <div class="mlb-subtabs">
+      <button class="mlb-subtab active" data-mlbtab="slate" onclick="switchMlbTab('slate')">📅 Slate</button>
+      <button class="mlb-subtab" data-mlbtab="fav" onclick="switchMlbTab('fav')">⭐ Favorites</button>
+    </div>
+    <div id="mlbFav" class="hidden"></div>
+    <div id="mlbSlate">
     <div id="dayBestHREl"></div>
     <div id="totalsScreenerEl"></div>
     <div class="game-grid" id="gameGrid"></div>
@@ -800,6 +841,7 @@ select option{background:#171d2a;color:#fff;}
       <div id="gamecastEl"></div>
       <div id="highlightsEl"></div>
       <div id="boxEl"></div>
+    </div>
     </div>
   </div>
 
@@ -961,6 +1003,7 @@ const S={
   awayFormRaw:null,homeFormRaw:null,
   plateUmpire:null,
   dayBestHR:null,box:null,
+  mlbTab:'slate',savant:null,favOpen:new Set(),favOU:{},favWeather:{},
   sport:'mlb',
   fb:{
     nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
@@ -3721,6 +3764,245 @@ function hoopsPropCard(p){
   </div>
   <div class="np-props">${rows||'<div style="font-size:10px;color:var(--text3);padding:3px">Limited role</div>'}</div>
 </div>`;
+}
+
+// ══════════ MLB FAVORITES (Statcast matchup cards) ══════════
+// Data: Baseball Savant leaderboards (barrel%, EV, ISO, pitch arsenals) joined to
+// MLB Stats API handedness splits. Savant player_id is the MLBAM id, so joins are by id.
+const SAVANT='https://baseballsavant.mlb.com';
+const PITCH_NAMES={ff:'4-Seam',si:'Sinker',fc:'Cutter',sl:'Slider',ch:'Change',cu:'Curve',fs:'Splitter',kn:'Knuckle',st:'Sweeper',sv:'Slurve'};
+
+function switchMlbTab(t){
+  S.mlbTab=t;
+  $('mlbSlate').classList.toggle('hidden',t!=='slate');
+  $('mlbFav').classList.toggle('hidden',t!=='fav');
+  document.querySelectorAll('.mlb-subtab').forEach(b=>b.classList.toggle('active',b.dataset.mlbtab===t));
+  if(t==='fav')loadFavorites();
+}
+
+// CSV parser that respects quoted fields ("Last, First" contains a comma)
+function parseCSV(txt){
+  const rows=[];let row=[],cur='',q=false;
+  txt=txt.replace(/^﻿/,'');
+  for(let i=0;i<txt.length;i++){
+    const c=txt[i];
+    if(q){ if(c==='"'){ if(txt[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"')q=true;
+    else if(c===','){row.push(cur);cur='';}
+    else if(c==='\n'){row.push(cur);cur='';if(row.some(v=>v!==''))rows.push(row);row=[];}
+    else if(c!=='\r')cur+=c;
+  }
+  if(cur!==''||row.length){row.push(cur);if(row.some(v=>v!==''))rows.push(row);}
+  if(!rows.length)return[];
+  const head=rows[0].map(h=>h.trim());
+  return rows.slice(1).map(r=>Object.fromEntries(head.map((h,i)=>[h,r[i]])));
+}
+async function savantCSV(url){
+  try{const r=await fetch(url);if(!r.ok)return[];return parseCSV(await r.text());}
+  catch(e){console.warn('savant fetch failed',e);return[];}
+}
+
+// Four league-wide pulls, fetched once per session
+async function loadSavantCache(){
+  if(S.savant)return S.savant;
+  const yr=YR;
+  const [bat,pit,arsB,arsP]=await Promise.all([
+    savantCSV(`${SAVANT}/leaderboard/custom?year=${yr}&type=batter&min=50&selections=barrel_batted_rate,exit_velocity_avg,isolated_power,b_home_run,b_total_pa&sort=barrel_batted_rate&sortDir=desc&csv=true`),
+    savantCSV(`${SAVANT}/leaderboard/custom?year=${yr}&type=pitcher&min=20&selections=barrel_batted_rate,exit_velocity_avg,p_home_run,p_formatted_ip&sort=barrel_batted_rate&sortDir=desc&csv=true`),
+    savantCSV(`${SAVANT}/leaderboard/pitch-arsenal-stats?type=batter&pitchType=&year=${yr}&team=&min=20&csv=true`),
+    savantCSV(`${SAVANT}/leaderboard/pitch-arsenals?year=${yr}&min=20&type=n_&hand=&csv=true`)
+  ]);
+  const num=v=>{const n=parseFloat(v);return isNaN(n)?null:n;};
+  const batters={},pitchers={},batArs={},pitArs={};
+  bat.forEach(r=>{const id=r.player_id;if(!id)return;batters[id]={
+    barrel:num(r.barrel_batted_rate),ev:num(r.exit_velocity_avg),iso:num(r.isolated_power),
+    hr:num(r.b_home_run),pa:num(r.b_total_pa)};});
+  pit.forEach(r=>{const id=r.player_id;if(!id)return;pitchers[id]={
+    barrel:num(r.barrel_batted_rate),ev:num(r.exit_velocity_avg),hr:num(r.p_home_run),ip:r.p_formatted_ip};});
+  arsB.forEach(r=>{const id=r.player_id;if(!id)return;
+    (batArs[id]=batArs[id]||{})[String(r.pitch_type||'').toLowerCase()]={
+      pa:num(r.pa),ba:num(r.ba),slg:num(r.slg),woba:num(r.woba),whiff:num(r.whiff_percent),hard:num(r.hard_hit_percent),name:r.pitch_name};});
+  arsP.forEach(r=>{const id=r.pitcher;if(!id)return;const mix={};
+    Object.keys(r).forEach(k=>{if(k.startsWith('n_')){const v=num(r[k]);if(v)mix[k.slice(2).toLowerCase()]=v;}});
+    pitArs[id]=mix;});
+  S.savant={batters,pitchers,batArs,pitArs,
+    ok:Object.keys(batters).length>0,at:Date.now()};
+  return S.savant;
+}
+
+// Weighted batter line against a specific pitcher's arsenal
+function vsMix(batterId,mix,sv){
+  const a=sv.batArs[batterId];if(!a||!mix)return null;
+  let wsum=0,ba=0,slg=0,whiff=0,pa=0,types=0;
+  Object.entries(mix).forEach(([pt,usage])=>{
+    const st=a[pt];if(!st||!st.pa)return;
+    wsum+=usage;ba+=(st.ba||0)*usage;slg+=(st.slg||0)*usage;whiff+=(st.whiff||0)*usage;pa+=st.pa;types++;
+  });
+  if(!wsum||!types)return null;
+  return{ba:ba/wsum,slg:slg/wsum,whiff:whiff/wsum,pa,types,cover:Math.round(wsum)};
+}
+
+async function loadFavorites(){
+  const el=$('mlbFav');if(!el)return;
+  if(!S.games.length){el.innerHTML='<div class="no-games"><div style="font-size:48px">⚾</div><div>No games on '+S.date+'</div></div>';return;}
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading Statcast leaderboards…</div>';
+  const [sv]=await Promise.all([
+    loadSavantCache(),
+    // park/wind and Vegas totals for the card headers
+    (async()=>{
+      const w=await Promise.all(S.games.map(g=>fetchWeather(g).catch(()=>null)));
+      S.favWeather={};S.games.forEach((g,i)=>{if(w[i])S.favWeather[g.gamePk]=w[i];});
+    })(),
+    (async()=>{
+      const espn=await api(`https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=${S.date.replace(/-/g,'')}`).catch(()=>null);
+      S.favOU={};
+      (espn?.events||[]).forEach(ev=>{
+        const c=ev.competitions?.[0];const ou=c?.odds?.[0]?.overUnder;if(ou==null)return;
+        const abbrs=(c.competitors||[]).map(x=>x.team?.abbreviation);
+        const g=S.games.find(gg=>abbrs.includes(gg.teams?.away?.team?.abbreviation)&&abbrs.includes(gg.teams?.home?.team?.abbreviation));
+        if(g)S.favOU[g.gamePk]=ou;
+      });
+    })()
+  ]);
+  if(!sv.ok){
+    el.innerHTML='<div class="bx-card"><div class="prob-title">⭐ Favorites</div><div style="font-size:12px;color:var(--text3);margin-top:6px">Baseball Savant did not return data — the leaderboards may be unavailable for '+YR+' yet. Try again once the season is under way.</div></div>';
+    return;
+  }
+  renderFavorites();
+}
+
+function renderFavorites(){
+  const el=$('mlbFav');if(!el)return;
+  const sv=S.savant;if(!sv)return;
+  const cards=S.games.map(g=>favCardHTML(g,sv)).join('');
+  el.innerHTML=`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Statcast matchup cards · tap a game to expand both sides</div>${cards}`;
+}
+
+function favCardHTML(g,sv){
+  const pk=g.gamePk;
+  const aw=g.teams?.away?.team,hw=g.teams?.home?.team;
+  const awA=aw?.abbreviation||'?',hwA=hw?.abbreviation||'?';
+  const park=PARK_FACTORS[g.venue?.id]||{hr:100,name:g.venue?.name||''};
+  const hrRank=((park.hr-100)/100).toFixed(2);
+  const w=S.favWeather?.[pk];
+  const t=g.gameDate?new Date(g.gameDate).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'';
+  const ouChip=S.favOU?.[pk]!=null?`<span class="fav-chip2">o/u ${S.favOU[pk]}</span>`:'';
+  const windChip=w&&!w.indoor?`<span class="fav-chip2">💨 ${w.wind}mph ${windDirLabel(w.windDir)}</span>`:(w?.indoor?'<span class="fav-chip2">🏟️ Dome</span>':'');
+  const parkChip=`<span class="fav-chip2 ${park.hr>=105?'hot':park.hr<=95?'cold':''}">Park HR ${hrRank>=0?'+':''}${hrRank}</span>`;
+  const open=S.favOpen?.has(pk);
+  return`<div class="fav-card${open?' open':''}" id="fav-${pk}">
+  <div class="fav-hd" onclick="toggleFav(${pk})">
+    <div class="fav-title">
+      <img src="${LOGO(aw?.id)}" onerror="this.style.display='none'">${awA}
+      <span style="color:var(--text3);font-weight:600">@</span>
+      <img src="${LOGO(hw?.id)}" onerror="this.style.display='none'">${hwA}
+      <span style="font-size:10px;color:var(--text3);font-weight:600">${t}</span>
+      <span class="fav-chev">▼</span>
+    </div>
+    <div class="fav-meta">${ouChip}${parkChip}${windChip}<span class="fav-chip2" style="color:var(--text3)">${park.name||''}</span></div>
+  </div>
+  <div class="fav-body" id="favBody-${pk}">${open?'':'<div style="font-size:11px;color:var(--text3);padding:8px 0">Loading…</div>'}</div>
+</div>`;
+}
+
+async function toggleFav(pk){
+  S.favOpen=S.favOpen||new Set();
+  const card=document.getElementById('fav-'+pk);
+  if(S.favOpen.has(pk)){S.favOpen.delete(pk);card?.classList.remove('open');return;}
+  S.favOpen.add(pk);card?.classList.add('open');
+  const body=document.getElementById('favBody-'+pk);
+  if(body&&body.dataset.loaded)return;
+  if(body)body.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Loading matchup…</div>';
+  const g=S.games.find(x=>x.gamePk===pk);if(!g||!body)return;
+  try{
+    const html=await buildFavBody(g,S.savant);
+    body.innerHTML=html;body.dataset.loaded='1';
+  }catch(e){body.innerHTML='<div style="font-size:11px;color:var(--text3);padding:6px 0">Could not load this matchup.</div>';}
+}
+
+async function buildFavBody(g,sv){
+  const awId=g.teams?.away?.team?.id,hwId=g.teams?.home?.team?.id;
+  const awA=g.teams?.away?.team?.abbreviation||'AWY',hwA=g.teams?.home?.team?.abbreviation||'HME';
+  const awP=g.teams?.away?.probablePitcher,hwP=g.teams?.home?.probablePitcher;
+  // lineups if posted, else rosters
+  const[lineups,awR,hwR]=await Promise.all([
+    api(`${MLB}/game/${g.gamePk}/lineups`),
+    api(`${MLB}/teams/${awId}/roster?rosterType=active&season=${YR}&hydrate=person(stats(type=season,group=hitting,gameType=R,season=${YR}))`),
+    api(`${MLB}/teams/${hwId}/roster?rosterType=active&season=${YR}&hydrate=person(stats(type=season,group=hitting,gameType=R,season=${YR}))`)
+  ]);
+  const side=async(battingTeamAbbr,roster,confirmed,oppP)=>{
+    const hand=oppP?.pitchHand?.code||'R';
+    const sitCode=hand==='L'?'vl':'vr';
+    const pool=(confirmed?.length?confirmed.map(c=>roster.find(r=>r.person?.id===c.id)).filter(Boolean):
+      roster.filter(p=>p.position?.type!=='Pitcher'&&p.position?.abbreviation!=='P'));
+    // rank by Statcast barrel% so the card leads with the real threats
+    const ranked=pool.map(p=>{
+      const id=String(p.person?.id);
+      const st=sv.batters[id];
+      return{p,id,st,barrel:st?.barrel??-1};
+    }).filter(x=>x.st).sort((a,b)=>b.barrel-a.barrel).slice(0,6);
+    // handedness splits, one request per shown batter
+    const splits=await Promise.all(ranked.map(x=>
+      api(`${MLB}/people/${x.id}/stats?stats=statSplits&sitCodes=${sitCode}&group=hitting&season=${YR}&gameType=R`).catch(()=>null)));
+    const mix=sv.pitArs[String(oppP?.id)]||null;
+    const rows={R:[],L:[]};
+    ranked.forEach((x,i)=>{
+      const bs=x.p.person?.batSide?.code||'R';
+      const key=bs==='L'?'L':'R';
+      const sp=splits[i]?.stats?.[0]?.splits?.[0]?.stat;
+      const vm=vsMix(x.id,mix,sv);
+      const st=x.st;
+      const iso=st.iso!=null?st.iso.toFixed(3).replace(/^0/,''):'—';
+      rows[key].push(`<div class="fav-bat">
+  <div class="fav-bat-rank">${rows[key].length+1}</div>
+  <div class="fav-bat-main">
+    <div class="fav-bat-nm">${x.p.person?.fullName||'?'}</div>
+    <div class="fav-bat-st"><b>${st.barrel!=null?st.barrel.toFixed(1):'—'}B%</b> · ${iso}ISO · ${st.ev!=null?st.ev.toFixed(1):'—'}EV · ${st.hr??0}HR</div>
+    ${vm?`<div class="fav-bat-vs">vs his mix: <em>${vm.ba.toFixed(3).replace(/^0/,'')}</em> BA / <em>${vm.slg.toFixed(3).replace(/^0/,'')}</em> SLG · ${Math.round(vm.whiff)}% whiff (${vm.pa} PA, ${vm.cover}% of arsenal)</div>`:''}
+    ${sp?`<div class="fav-bat-vs">vs ${hand==='L'?'LHP':'RHP'}: ${sp.homeRuns||0} HR · ${sp.slg||'—'} SLG · ${sp.avg||'—'} AVG (${sp.plateAppearances||0} PA)</div>`:''}
+  </div>
+</div>`);
+    });
+    const mixHTML=mix?`<div class="fav-mix">${Object.entries(mix).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>`<span>${PITCH_NAMES[k]||k.toUpperCase()} ${v}%</span>`).join('')}</div>`:'';
+    return{rows,mixHTML,hand};
+  };
+  // pitcher blocks: Savant overall + MLB handedness HR splits
+  const pitcherBlock=async(pit,label)=>{
+    if(!pit)return`<div class="fav-pitch"><div class="fav-pitch-nm">${label} SP: TBD</div></div>`;
+    const id=String(pit.id);
+    const sp=sv.pitchers[id];
+    const[vr,vl]=await Promise.all([
+      api(`${MLB}/people/${id}/stats?stats=statSplits&sitCodes=vr&group=pitching&season=${YR}&gameType=R`).catch(()=>null),
+      api(`${MLB}/people/${id}/stats?stats=statSplits&sitCodes=vl&group=pitching&season=${YR}&gameType=R`).catch(()=>null)
+    ]);
+    const R=vr?.stats?.[0]?.splits?.[0]?.stat,L=vl?.stats?.[0]?.splits?.[0]?.stat;
+    const mix=sv.pitArs[id];
+    return`<div class="fav-pitch">
+  <div class="fav-pitch-nm">${pit.fullName||'?'} (${pit.pitchHand?.code||'?'}) · ${label}</div>
+  <div class="fav-pitch-line">
+    ${sp?`<b>${sp.barrel!=null?sp.barrel.toFixed(2):'—'}B%</b> allowed · ${sp.ev!=null?sp.ev.toFixed(1):'—'}EV · ${sp.hr??'—'} HR in ${sp.ip||'—'} IP`:'<span style="color:var(--text3)">No Statcast line yet</span>'}
+    ${R||L?`<br>${R?`<b>${R.homeRuns||0}</b> HR vs RHH (${R.battersFaced||R.plateAppearances||0} BF)`:''}${R&&L?' · ':''}${L?`<b>${L.homeRuns||0}</b> HR vs LHH (${L.battersFaced||L.plateAppearances||0} BF)`:''}`:''}
+  </div>
+  ${mix?`<div class="fav-mix">${Object.entries(mix).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k,v])=>`<span>${PITCH_NAMES[k]||k.toUpperCase()} ${v}%</span>`).join('')}</div>`:''}
+</div>`;
+  };
+
+  const[awPitch,hwPitch,awSide,hwSide]=await Promise.all([
+    pitcherBlock(awP,`${awA} starter`),
+    pitcherBlock(hwP,`${hwA} starter`),
+    side(awA,awR?.roster||[],lineups?.awayPlayers,hwP),
+    side(hwA,hwR?.roster||[],lineups?.homePlayers,awP)
+  ]);
+  const block=(teamA,oppLabel,sideData)=>`
+  <div class="fav-hand" style="color:var(--text2);letter-spacing:.6px">${teamA} bats vs ${oppLabel}</div>
+  ${sideData.rows.R.length?`<div class="fav-hand">RHH</div>${sideData.rows.R.join('')}`:''}
+  ${sideData.rows.L.length?`<div class="fav-hand">LHH</div>${sideData.rows.L.join('')}`:''}
+  ${!sideData.rows.R.length&&!sideData.rows.L.length?'<div style="font-size:11px;color:var(--text3);padding:6px 0">No Statcast qualifiers on this side.</div>':''}`;
+
+  return`${hwPitch}${block(awA,(hwP?.pitchHand?.code==='L'?'LHP':'RHP'),awSide)}
+  <div style="height:1px;background:var(--border);margin:14px 0"></div>
+  ${awPitch}${block(hwA,(awP?.pitchHand?.code==='L'?'LHP':'RHP'),hwSide)}
+  <div class="fav-src">Barrel%, exit velocity, ISO and pitch arsenals from Baseball Savant (${YR}). HR-vs-handedness splits from the MLB Stats API. "vs his mix" weights the batter's per-pitch-type results by the pitcher's actual usage — it is not a raw HR-vs-pitch-mix count, which Savant does not publish. Pitcher Barrel% is overall, not split by batter hand.</div>`;
 }
 
 </script>
