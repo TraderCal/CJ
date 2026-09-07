@@ -3807,7 +3807,7 @@ async function loadSavantCache(){
   if(S.savant)return S.savant;
   const yr=YR;
   const [bat,pit,arsB,arsP]=await Promise.all([
-    savantCSV(`${SAVANT}/leaderboard/custom?year=${yr}&type=batter&min=50&selections=barrel_batted_rate,exit_velocity_avg,isolated_power,b_home_run,b_total_pa&sort=barrel_batted_rate&sortDir=desc&csv=true`),
+    savantCSV(`${SAVANT}/leaderboard/custom?year=${yr}&type=batter&min=50&selections=barrel_batted_rate,exit_velocity_avg,isolated_power,b_total_pa&sort=barrel_batted_rate&sortDir=desc&csv=true`),
     savantCSV(`${SAVANT}/leaderboard/custom?year=${yr}&type=pitcher&min=20&selections=barrel_batted_rate,exit_velocity_avg,p_home_run,p_formatted_ip&sort=barrel_batted_rate&sortDir=desc&csv=true`),
     savantCSV(`${SAVANT}/leaderboard/pitch-arsenal-stats?type=batter&pitchType=&year=${yr}&team=&min=20&csv=true`),
     savantCSV(`${SAVANT}/leaderboard/pitch-arsenals?year=${yr}&min=20&type=n_&hand=&csv=true`)
@@ -3816,7 +3816,7 @@ async function loadSavantCache(){
   const batters={},pitchers={},batArs={},pitArs={};
   bat.forEach(r=>{const id=r.player_id;if(!id)return;batters[id]={
     barrel:num(r.barrel_batted_rate),ev:num(r.exit_velocity_avg),iso:num(r.isolated_power),
-    hr:num(r.b_home_run),pa:num(r.b_total_pa)};});
+    pa:num(r.b_total_pa)};});
   pit.forEach(r=>{const id=r.player_id;if(!id)return;pitchers[id]={
     barrel:num(r.barrel_batted_rate),ev:num(r.exit_velocity_avg),hr:num(r.p_home_run),ip:r.p_formatted_ip};});
   arsB.forEach(r=>{const id=r.player_id;if(!id)return;
@@ -3939,7 +3939,9 @@ async function buildFavBody(g,sv){
     const ranked=pool.map(p=>{
       const id=String(p.person?.id);
       const st=sv.batters[id];
-      return{p,id,st,barrel:st?.barrel??-1};
+      // Savant's b_home_run selection returns empty, so take HR from the roster hydrate
+      const hr=parseInt(p.person?.stats?.[0]?.splits?.[0]?.stat?.homeRuns)||0;
+      return{p,id,st,hr,barrel:st?.barrel??-1};
     }).filter(x=>x.st).sort((a,b)=>b.barrel-a.barrel).slice(0,6);
     // handedness splits, one request per shown batter
     const splits=await Promise.all(ranked.map(x=>
@@ -3957,7 +3959,7 @@ async function buildFavBody(g,sv){
   <div class="fav-bat-rank">${rows[key].length+1}</div>
   <div class="fav-bat-main">
     <div class="fav-bat-nm">${x.p.person?.fullName||'?'}</div>
-    <div class="fav-bat-st"><b>${st.barrel!=null?st.barrel.toFixed(1):'—'}B%</b> · ${iso}ISO · ${st.ev!=null?st.ev.toFixed(1):'—'}EV · ${st.hr??0}HR</div>
+    <div class="fav-bat-st"><b>${st.barrel!=null?st.barrel.toFixed(1):'—'}B%</b> · ${iso}ISO · ${st.ev!=null?st.ev.toFixed(1):'—'}EV · ${x.hr}HR</div>
     ${vm?`<div class="fav-bat-vs">vs his mix: <em>${vm.ba.toFixed(3).replace(/^0/,'')}</em> BA / <em>${vm.slg.toFixed(3).replace(/^0/,'')}</em> SLG · ${Math.round(vm.whiff)}% whiff (${vm.pa} PA, ${vm.cover}% of arsenal)</div>`:''}
     ${sp?`<div class="fav-bat-vs">vs ${hand==='L'?'LHP':'RHP'}: ${sp.homeRuns||0} HR · ${sp.slg||'—'} SLG · ${sp.avg||'—'} AVG (${sp.plateAppearances||0} PA)</div>`:''}
   </div>
