@@ -849,6 +849,7 @@ select option{background:#171d2a;color:#fff;}
   <div id="nflContent" class="hidden">
     <div id="nflControlsEl"></div>
     <div id="nflStatusEl"></div>
+    <div id="nflScreenerEl"></div>
     <div class="nfl-grid" id="nflGrid"></div>
     <div class="nfl-detail" id="nflDetail">
       <div id="nflHeroEl"></div>
@@ -868,6 +869,7 @@ select option{background:#171d2a;color:#fff;}
   <div id="cfbContent" class="hidden">
     <div id="cfbControlsEl"></div>
     <div id="cfbStatusEl"></div>
+    <div id="cfbScreenerEl"></div>
     <div class="nfl-grid" id="cfbGrid"></div>
     <div class="nfl-detail" id="cfbDetail">
       <div id="cfbHeroEl"></div>
@@ -887,6 +889,7 @@ select option{background:#171d2a;color:#fff;}
   <div id="nbaContent" class="hidden">
     <div id="nbaControlsEl"></div>
     <div id="nbaStatusEl"></div>
+    <div id="nbaScreenerEl"></div>
     <div class="nfl-grid" id="nbaGrid"></div>
     <div class="nfl-detail" id="nbaDetail">
       <div id="nbaHeroEl"></div>
@@ -1006,9 +1009,9 @@ const S={
   mlbTab:'slate',savant:null,favOpen:new Set(),favOU:{},favWeather:{},
   sport:'mlb',
   fb:{
-    nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
-    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null},
-    nba:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null,date:null}
+    nfl:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null,screener:null,screenerFilter:'all'},
+    cfb:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null,screener:null,screenerFilter:'all'},
+    nba:{games:[],selId:null,calendar:[],seasonType:null,week:null,year:null,upcomingOnly:false,loaded:false,props:null,propTab:'all',conf:'all',box:null,screener:null,screenerFilter:'all',date:null}
   }
 };
 
@@ -2314,6 +2317,7 @@ async function initFB(){
   renderFBControls();
   renderFBGrid();
   populateSelects();
+  go(async()=>loadFBScreener());
 }
 
 async function loadFBWeek(){
@@ -2324,9 +2328,11 @@ async function loadFBWeek(){
     ? `${FBC.api}/scoreboard?dates=${(FBS().date||today()).replace(/-/g,'')}`
     : `${FBC.api}/scoreboard?`+fbQS(`seasontype=${FBS().seasonType}&week=${FBS().week}&dates=${FBS().year}`));
   FBS().games=data?.events||[];
+  FBS().screener=null;
   renderFBControls();
   renderFBGrid();
   populateSelects();
+  go(async()=>loadFBScreener());
 }
 
 function onFBSeasonType(val){
@@ -4006,6 +4012,153 @@ async function buildFavBody(g,sv){
   ${awPitch}${block(hwA,(awP?.pitchHand?.code==='L'?'LHP':'RHP'),hwSide)}
   <div class="fav-src">Barrel%, exit velocity, ISO and pitch arsenals from Baseball Savant (${YR}). HR-vs-handedness splits from the MLB Stats API. "vs his mix" weights the batter's per-pitch-type results by the pitcher's actual usage — it is not a raw HR-vs-pitch-mix count, which Savant does not publish. Pitcher Barrel% is overall, not split by batter hand.</div>`;
 }
+
+// ══════════ FOOTBALL / BASKETBALL TOTALS SCREENER ══════════
+// Slate-wide over/under lean, mirroring the MLB screener.
+// Model: project a total from each team's scoring and scoring-allowed rates,
+// then compare it to the posted number. Scoring rates come from one standings
+// call per sport — NBA exposes avgPointsFor/avgPointsAgainst directly, while
+// football gives season totals, so divide by games played (wins+losses+ties).
+const LEAGUE_BASE={nfl:44.5,cfb:52.0,nba:225.0};
+
+async function loadTeamScoring(){
+  const key=FBC.key;
+  S.teamScoring=S.teamScoring||{};
+  if(S.teamScoring[key])return S.teamScoring[key];
+  const base=FBC.api.replace('/apis/site/v2/','/apis/v2/');
+  const data=await api(`${base}/standings`).catch(()=>null);
+  const out={};
+  const walk=node=>{
+    if(!node||typeof node!=='object')return;
+    if(Array.isArray(node)){node.forEach(walk);return;}
+    if(node.team&&Array.isArray(node.stats)){
+      const id=String(node.team.id||'');
+      const g={};
+      node.stats.forEach(st=>{if(st&&st.name!==undefined)g[st.name]=st.value;});
+      const gp=(g.wins||0)+(g.losses||0)+(g.ties||0);
+      const pf=g.avgPointsFor!=null?g.avgPointsFor:(gp?g.pointsFor/gp:null);
+      const pa=g.avgPointsAgainst!=null?g.avgPointsAgainst:(gp?g.pointsAgainst/gp:null);
+      if(id&&pf!=null&&pa!=null&&isFinite(pf)&&isFinite(pa))out[id]={pf,pa,gp};
+    }
+    Object.values(node).forEach(v=>{if(v&&typeof v==='object')walk(v);});
+  };
+  walk(data);
+  S.teamScoring[key]=out;
+  return out;
+}
+
+async function loadFBScreener(){
+  const el=$(FBC.p+'ScreenerEl');if(!el)return;
+  const games=(FBS().games||[]).filter(g=>g.competitions?.[0]?.status?.type?.state!=='post');
+  if(!games.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="day-hr-loading"><div class="spinner"></div>Building totals screener…</div>';
+  const scoring=await loadTeamScoring();
+  const base=LEAGUE_BASE[FBC.key]||LEAGUE_BASE.nfl;
+
+  const scored=games.map(g=>{
+    const c=g.competitions?.[0];
+    const home=(c&&c.competitors||[]).find(x=>x.homeAway==='home');
+    const away=(c&&c.competitors||[]).find(x=>x.homeAway==='away');
+    const odds=c?.odds?.[0];
+    const ou=parseFloat(odds?.overUnder);
+    const w=c?.weather||g.weather;
+    const indoor=c?.venue?.indoor||FBC.noWeather;
+    let score=0;const factors=[];
+
+    // model vs market
+    const hs=scoring[String(home?.team?.id)],as=scoring[String(away?.team?.id)];
+    let proj=null;
+    if(hs&&as){
+      proj=((as.pf+hs.pa)/2)+((hs.pf+as.pa)/2);
+      if(!isNaN(ou)&&ou>0){
+        const edge=proj-ou;
+        const thresh=FBC.hoops?6:3.5;
+        if(edge>=thresh*1.7){score+=4;factors.push({l:`Model ${proj.toFixed(1)} vs ${ou} (+${edge.toFixed(1)})`,d:'over'});}
+        else if(edge>=thresh){score+=2;factors.push({l:`Model ${proj.toFixed(1)} vs ${ou}`,d:'over'});}
+        else if(edge<=-thresh*1.7){score-=4;factors.push({l:`Model ${proj.toFixed(1)} vs ${ou} (${edge.toFixed(1)})`,d:'under'});}
+        else if(edge<=-thresh){score-=2;factors.push({l:`Model ${proj.toFixed(1)} vs ${ou}`,d:'under'});}
+        else factors.push({l:`Model ${proj.toFixed(1)} ≈ ${ou}`,d:'neutral'});
+      } else {
+        if(proj>=base*1.08){score+=2;factors.push({l:`Proj ${proj.toFixed(1)} (no line)`,d:'over'});}
+        else if(proj<=base*0.92){score-=2;factors.push({l:`Proj ${proj.toFixed(1)} (no line)`,d:'under'});}
+      }
+    }
+    // posted total relative to the league
+    if(!isNaN(ou)&&ou>0){
+      if(ou>=base*1.12){score+=1;factors.push({l:`High total ${ou}`,d:'over'});}
+      else if(ou<=base*0.88){score-=1;factors.push({l:`Low total ${ou}`,d:'under'});}
+    }
+    // weather (football only)
+    if(!indoor&&w){
+      const tmp=w.temperature,wind=(w.wind&&w.wind.speed!==undefined)?w.wind.speed:w.wind;
+      if(wind>20){score-=4;factors.push({l:`Wind ${wind}mph`,d:'under'});}
+      else if(wind>15){score-=2;factors.push({l:`Wind ${wind}mph`,d:'under'});}
+      else if(wind>10){score-=1;factors.push({l:`Wind ${wind}mph`,d:'under'});}
+      if(tmp!=null){
+        if(tmp<35){score-=3;factors.push({l:`${tmp}°F cold`,d:'under'});}
+        else if(tmp<50){score-=1;factors.push({l:`${tmp}°F cool`,d:'under'});}
+        else if(tmp>82){score+=2;factors.push({l:`${tmp}°F warm`,d:'over'});}
+      }
+      const pr=w.precipitation;
+      if(pr>60){score-=2;factors.push({l:`Rain ${pr}%`,d:'under'});}
+    } else if(c?.venue?.indoor&&!FBC.noWeather){
+      factors.push({l:'Dome',d:'neutral'});
+    }
+
+    let lean,cls,icon;
+    if(score>=5){lean='Strong OVER';cls='lean-over-strong';icon='📈';}
+    else if(score>=2){lean='Lean OVER';cls='lean-over';icon='⬆️';}
+    else if(score<=-5){lean='Strong UNDER';cls='lean-under-strong';icon='📉';}
+    else if(score<=-2){lean='Lean UNDER';cls='lean-under';icon='⬇️';}
+    else{lean='Toss-Up';cls='lean-neutral';icon='⚖️';}
+
+    const dt=g.date?new Date(g.date):null;
+    return{g,score,lean,cls,icon,factors,proj,ou,
+      awA:away?.team?.abbreviation||'?',hwA:home?.team?.abbreviation||'?',
+      t:dt?dt.toLocaleString([],{weekday:'short',hour:'numeric',minute:'2-digit'}):'TBD'};
+  });
+
+  scored.sort((a,b)=>Math.abs(b.score)-Math.abs(a.score));
+  FBS().screener=scored;
+  renderFBScreener();
+}
+
+function setFBScreenerFilter(f){FBS().screenerFilter=f;renderFBScreener();}
+
+function renderFBScreener(){
+  const el=$(FBC.p+'ScreenerEl');if(!el)return;
+  const data=FBS().screener;if(!data||!data.length){el.innerHTML='';return;}
+  const f=FBS().screenerFilter||'all';
+  let rows=data;
+  if(f==='over')rows=data.filter(d=>d.score>=2);
+  else if(f==='under')rows=data.filter(d=>d.score<=-2);
+  else if(f==='tossup')rows=data.filter(d=>d.score>-2&&d.score<2);
+
+  const rowsHTML=rows.map(d=>{
+    const sv=d.score>0?`+${d.score}`:d.score;
+    const sc=d.score>=2?'ts-score-over':d.score<=-2?'ts-score-under':'ts-score-neutral';
+    const fh=d.factors.slice(0,4).map(x=>`<span class="ts-factor ts-factor-${x.d}">${x.l}</span>`).join('');
+    return`<div class="ts-row" onclick="selectFBGame('${d.g.id}')">
+  <div class="ts-matchup"><span class="ts-abbr">${d.awA}</span><span class="ts-vs">@</span><span class="ts-abbr">${d.hwA}</span><span class="ts-time">${d.t}</span></div>
+  <div class="ts-factors">${fh}</div>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="ts-score-pill ${sc}">${sv}</div>
+    <div class="ts-lean ${d.cls}">${d.icon} ${d.lean}</div>
+  </div>
+</div>`;
+  }).join('');
+
+  const btns=['all','over','under','tossup'].map(k=>
+    `<button class="ts-filter-btn${f===k?' active':''}" onclick="setFBScreenerFilter('${k}')">${k==='all'?'All Games':k==='over'?'⬆️ Overs':k==='under'?'⬇️ Unders':'⚖️ Toss-Ups'}</button>`).join('');
+
+  const modelled=data.filter(d=>d.proj!=null).length;
+  el.innerHTML=`<div class="ts-card">
+  <div class="prob-title">📊 Totals Screener — ${data.length} Game${data.length!==1?'s':''}</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:10px">Projected total vs the posted number${FBC.noWeather?'':', plus weather'} · click a game for full analysis</div>
+  <div class="ts-filters">${btns}</div>
+  <div class="ts-list">${rowsHTML||'<div style="font-size:12px;color:var(--text3);padding:10px 0">No games match this filter</div>'}</div>
+  ${modelled<data.length?`<div style="font-size:9px;color:var(--text3);margin-top:8px">${data.length-modelled} game${data.length-modelled!==1?'s':''} without scoring rates yet — early season or missing standings data.</div>`:''}
+</div>`;}
 
 </script>
 </body>
