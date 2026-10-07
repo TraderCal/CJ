@@ -4036,15 +4036,39 @@ async function loadTeamScoring(){
       const g={};
       node.stats.forEach(st=>{if(st&&st.name!==undefined)g[st.name]=st.value;});
       const gp=(g.wins||0)+(g.losses||0)+(g.ties||0);
-      const pf=g.avgPointsFor!=null?g.avgPointsFor:(gp?g.pointsFor/gp:null);
-      const pa=g.avgPointsAgainst!=null?g.avgPointsAgainst:(gp?g.pointsAgainst/gp:null);
-      if(id&&pf!=null&&pa!=null&&isFinite(pf)&&isFinite(pa))out[id]={pf,pa,gp};
+      // NBA gives per-game averages outright. Football gives season totals, and
+      // CFB standings omit `losses` entirely — so games played from here is not
+      // trustworthy. Keep the totals and let teamRate() resolve the rate using
+      // the record on the scoreboard, which always has wins AND losses.
+      if(!id)return;
+      if(g.avgPointsFor!=null&&g.avgPointsAgainst!=null){
+        out[id]={pf:g.avgPointsFor,pa:g.avgPointsAgainst,gp,exact:true};
+      } else if(g.pointsFor!=null&&g.pointsAgainst!=null){
+        out[id]={pfTotal:g.pointsFor,paTotal:g.pointsAgainst,gp,exact:false};
+      }
     }
     Object.values(node).forEach(v=>{if(v&&typeof v==='object')walk(v);});
   };
   walk(data);
   S.teamScoring[key]=out;
   return out;
+}
+
+// Games played from a "12-1" / "8-4-1" record summary.
+function gpFromRecord(competitor){
+  const sum=(competitor?.records||[]).find(r=>r.type==='total'||r.name==='overall')?.summary
+          ||competitor?.records?.[0]?.summary||'';
+  const parts=String(sum).split('-').map(n=>parseInt(n,10)).filter(n=>!isNaN(n));
+  const gp=parts.reduce((a,b)=>a+b,0);
+  return gp>0?gp:0;
+}
+// Per-game scoring for a team, using the most reliable games-played source available.
+function teamRate(entry,competitor){
+  if(!entry)return null;
+  if(entry.exact)return{pf:entry.pf,pa:entry.pa};
+  const gp=gpFromRecord(competitor)||entry.gp;
+  if(!gp)return null;
+  return{pf:entry.pfTotal/gp,pa:entry.paTotal/gp};
 }
 
 async function loadFBScreener(){
@@ -4066,7 +4090,8 @@ async function loadFBScreener(){
     let score=0;const factors=[];
 
     // model vs market
-    const hs=scoring[String(home?.team?.id)],as=scoring[String(away?.team?.id)];
+    const hs=teamRate(scoring[String(home?.team?.id)],home);
+    const as=teamRate(scoring[String(away?.team?.id)],away);
     let proj=null;
     if(hs&&as){
       proj=((as.pf+hs.pa)/2)+((hs.pf+as.pa)/2);
